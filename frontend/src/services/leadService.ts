@@ -216,7 +216,7 @@ export async function getLeadForStudent(studentId: string): Promise<Lead | null>
   }
   const { data, error } = await supabase
     .from('leads')
-    .select(`*, student:students(full_name, email, mobile, college, preferred_domain:domains(name))`)
+    .select(`*, student:students(id, full_name, email, mobile, college, branch, campaign_code, preferred_domain_id, preferred_domain:domains(name, slug))`)
     .eq('student_id', studentId)
     .maybeSingle();
 
@@ -337,6 +337,7 @@ export async function listLeads(
       .select(
         `*, student:students(
           id, full_name, email, mobile, college, branch, academic_year, state,
+          campaign_code, preferred_domain_id,
           utm_source, utm_medium, utm_campaign, referral_code, created_at,
           preferred_domain:domains(name, slug)
         )`,

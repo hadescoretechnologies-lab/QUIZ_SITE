@@ -46,6 +46,11 @@ const DOMAIN_SLUG_MAP: Record<string, string> = {
   'cybersecurity': 'cybersecurity-ethical-hacking',
   'security': 'cybersecurity-ethical-hacking',
   'cybersecurity-ethical-hacking': 'cybersecurity-ethical-hacking',
+  'iot': 'iot-embedded',
+  'iot-embedded': 'iot-embedded',
+  'internet-of-things': 'iot-embedded',
+  'embedded-systems': 'iot-embedded',
+  'embedded': 'iot-embedded',
 };
 
 const DOMAIN_METADATA_FALLBACKS: Record<string, Domain> = {
@@ -136,6 +141,21 @@ const DOMAIN_METADATA_FALLBACKS: Record<string, Domain> = {
     estimated_minutes: 25,
     active: true,
     display_order: 6,
+    created_at: '',
+    updated_at: '',
+  },
+  'iot-embedded': {
+    id: 'd0000000-0000-0000-0000-000000000016',
+    name: 'Internet of Things (IoT) & Embedded Systems',
+    slug: 'iot-embedded',
+    description: 'Microcontrollers (ESP32/STM32), MQTT/CoAP, sensors, GPIO/I2C/SPI, FreeRTOS, and edge devices.',
+    icon: '📡',
+    color: '#06b6d4',
+    difficulty: 'intermediate',
+    question_count: 30,
+    estimated_minutes: 20,
+    active: true,
+    display_order: 16,
     created_at: '',
     updated_at: '',
   },
@@ -275,7 +295,8 @@ const BACKEND_URL = getBackendUrl();
 export async function startQuizAttempt(
   studentId: string,
   domainId: string,
-  targetCount?: number
+  targetCount?: number,
+  domainName?: string
 ): Promise<QuizAttempt & { questions?: Question[] }> {
   const qConfig = getStoredQuizConfig();
   const totalQ = targetCount || qConfig.questions_per_quiz || 10;
@@ -285,7 +306,7 @@ export async function startQuizAttempt(
     const res = await fetch(`${BACKEND_URL}/api/quiz/start`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ studentId, domainId, targetQuestionsCount: totalQ }),
+      body: JSON.stringify({ studentId, domainId, domainName, targetQuestionsCount: totalQ }),
     });
 
     if (res.ok) {
@@ -739,8 +760,8 @@ export const QUIZ_CONFIG_KEY = 'hadescore_quiz_config';
 
 export const DEFAULT_QUIZ_CONFIG: QuizEngineConfig = {
   question_bank_size: 30,
-  questions_per_quiz: 10,
-  passing_questions_count: 5,
+  questions_per_quiz: 30,
+  passing_questions_count: 15,
   passing_percentage: 50,
   max_attempts: 1, // 1 Attempt per candidate email ID
   quiz_timer_minutes: 15,
@@ -853,3 +874,18 @@ export async function generateDomainQuestionBank(
   }
   return await res.json();
 }
+
+export async function testGeminiApiKey(apiKey?: string): Promise<{ success: boolean; model?: string; message?: string; error?: string }> {
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/quiz/test-gemini`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ apiKey }),
+    });
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Connection to backend failed' };
+  }
+}
+

@@ -22,6 +22,7 @@ import { useUTM } from '@/hooks/useUTM';
 import supabase, { isSupabaseConfigured } from '@/lib/supabase';
 import { toast } from '@/hooks/useToast';
 import { TECH_DOMAINS, type TechDomainOption } from '@/data/techDomains';
+import { clearQuizState } from '@/lib/analytics';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -143,15 +144,8 @@ export default function RegisterPage() {
 
     if (isCustomDomain) {
       chosenName = customDomainText.trim();
-      chosenSlug = chosenName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-      // Match against known domains if possible (e.g. "civil" -> "civil-eng")
-      const matched = TECH_DOMAINS.find((d) =>
-        d.slug.toLowerCase().includes(chosenSlug) ||
-        chosenSlug.includes(d.slug.toLowerCase()) ||
-        d.name.toLowerCase().includes(chosenName.toLowerCase()) ||
-        d.id.toLowerCase().includes(chosenSlug)
-      );
-      targetDomainId = matched ? matched.id : chosenSlug;
+      chosenSlug = chosenName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'custom-domain';
+      targetDomainId = chosenSlug;
     }
 
     setIsLoading(true);
@@ -206,11 +200,21 @@ export default function RegisterPage() {
       });
 
       const sId = student.id || 'student-' + Date.now();
+      clearQuizState();
+      try {
+        sessionStorage.removeItem('active_quiz_questions');
+        sessionStorage.removeItem('active_quiz_attempt');
+        localStorage.removeItem('quiz_state');
+        sessionStorage.setItem('active_assessment_domain_name', chosenName);
+        sessionStorage.setItem('active_assessment_domain_slug', chosenSlug);
+      } catch {}
+
       navigate(`/quiz/${chosenSlug}`, {
         state: {
           studentId: sId,
           domainId: targetDomainId,
-          customDomainName: isCustomDomain ? chosenName : undefined,
+          domainName: chosenName,
+          customDomainName: chosenName,
         },
       });
     } catch (error) {

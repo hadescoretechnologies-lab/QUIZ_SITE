@@ -156,17 +156,100 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, result);
     }
 
-    // ── Start Quiz Attempt (Randomized, Shuffled, is_correct stripped)
-    if (pathname === '/api/quiz/start' && req.method === 'POST') {
+    // ── Test Gemini API Key Connection ─────────────────────────
+    if (pathname === '/api/quiz/test-gemini' && req.method === 'POST') {
       const body = await parseJsonBody(req);
-      const { studentId, domainId, targetQuestionsCount } = body;
+      const config = await quizEngine.getQuizConfig();
+      const testKey = (body.apiKey || config.gemini_api_key || process.env.GEMINI_API_KEY || '').trim();
 
-      if (!studentId || !domainId) {
-        return sendJson(res, 400, { error: 'studentId and domainId are required' });
+      if (!testKey) {
+        return sendJson(res, 400, {
+          success: false,
+          error: 'No Gemini API key provided. Please enter a valid Gemini API key.'
+        });
       }
 
-      const session = await quizEngine.startQuizAttempt(studentId, domainId, targetQuestionsCount);
-      return sendJson(res, 200, { success: true, ...session });
+      try {
+        log('Testing Gemini API key connectivity...');
+        const prompt = 'Return a short JSON object: {"status": "ok", "message": "connected"}';
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${testKey}`;
+        
+        const testRes = await new Promise((resolve, reject) => {
+          const postData = JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { responseMimeType: 'application/json' }
+          });
+          const parsedUrl = new URL(url);
+          const reqOpt = {
+            hostname: parsedUrl.hostname,
+            path: parsedUrl.pathname + parsedUrl.search,
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Content-Length': Buffer.byteLength(postData)
+            },
+            timeout: 15000
+          };
+          const clientReq = https.request(reqOpt, (upstreamRes) => {
+            let data = '';
+            upstreamRes.on('data', chunk => data += chunk);
+            upstreamRes.on('end', () => {
+              if (upstreamRes.statusCode >= 200 && upstreamRes.statusCode < 300) {
+                resolve({ ok: true, data });
+              } else {
+                resolve({ ok: false, status: upstreamRes.statusCode, data });
+              }
+            });
+          });
+          clientReq.on('error', reject);
+          clientReq.on('timeout', () => { clientReq.destroy(); reject(new Error('Connection timed out')); });
+          clientReq.write(postData);
+          clientReq.end();
+        });
+
+        if (testRes.ok) {
+          log('Gemini API key is valid and working!');
+          return sendJson(res, 200, {
+            success: true,
+            model: 'gemini-2.5-flash',
+            message: 'Gemini API key is active and responding successfully!'
+          });
+        } else {
+          let errDetail = 'Invalid response from Gemini API';
+          try {
+            const parsedErr = JSON.parse(testRes.data);
+            errDetail = parsedErr.error?.message || errDetail;
+          } catch {}
+          return sendJson(res, 400, {
+            success: false,
+            status: testRes.status,
+            error: errDetail
+          });
+        }
+      } catch (err) {
+        return sendJson(res, 500, {
+          success: false,
+          error: `Network or request error: ${err.message}`
+        });
+      }
+    }
+
+    // ── Start Quiz Attempt (Randomized, Shuffled, is_correct stripped)
+    if (pathname === '/api/quiz/start' && req.method === 'POST') {
+      try {
+        const body = await parseJsonBody(req);
+        const { studentId, domainId, targetQuestionsCount, domainName } = body;
+
+        if (!studentId || !domainId) {
+          return sendJson(res, 400, { error: 'studentId and domainId are required' });
+        }
+
+        const session = await quizEngine.startQuizAttempt(studentId, domainId, targetQuestionsCount, domainName);
+        return sendJson(res, 200, { success: true, ...session });
+      } catch (err) {
+        log(`[QuizStart Error] ${err.message}`);
+        return sendJson(res, 500, { success: false, error: err.message });
+      }
     }
 
     // ── Submit Quiz Attempt (Strict Server-Side Grading) ────────

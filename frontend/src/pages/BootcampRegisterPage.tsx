@@ -241,7 +241,7 @@ export default function BootcampRegisterPage() {
               </div>
               <div className="min-w-0">
                 <h1 className="font-display font-extrabold text-xl sm:text-2xl md:text-3xl text-white mb-1 leading-tight">
-                  Join the {domainName} Certified Bootcamp
+                  Join the Certified Bootcamp
                 </h1>
                 <p className="text-gray-300 text-xs sm:text-sm leading-relaxed">
                   We already have your verified profile! Simply pick your schedule preferences to confirm your seat.

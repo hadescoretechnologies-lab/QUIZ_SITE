@@ -114,32 +114,211 @@ function generateDomainFallbackBank(domainName, existingQuestionTexts = []) {
  * Call Google Gemini API to generate 30 technical questions for a domain.
  * Falls back to curated banks if Gemini key is unset or rate limited.
  */
-async function generateDomainQuestionsWithGemini(domainName, existingQuestionTexts = [], apiKeyOverride = null) {
-  const apiKey = apiKeyOverride || process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
+const DOMAIN_KNOWLEDGE_AREAS = {
+  'chemical-engineering': [
+    'mass and energy balances (steady state, recycle streams, purge, bypass)',
+    'chemical engineering thermodynamics (fugacity, activity coefficients, phase equilibria, Raoult and Henry laws, excess Gibbs free energy)',
+    'fluid mechanics in chemical processes (Navier-Stokes, friction factors, Bernoulli, pump sizing, pressure drop in packed beds)',
+    'heat transfer (Fourier law, LMTD, overall heat transfer coefficient U, shell-and-tube exchangers, forced convection, Nusselt number)',
+    'mass transfer and separation processes (Fick law, McCabe-Thiele method, distillation columns, gas absorption, NTU/HTU, liquid-liquid extraction)',
+    'chemical reaction engineering (Arrhenius kinetics, CSTR and PFR design equations, batch reactors, catalyst deactivation, Thiele modulus)',
+    'process dynamics and control (PID controllers, feedback/feedforward loops, transfer functions, stability margins, Bode plots)',
+    'chemical process equipment & safety (distillation columns, reactors, compressors, HAZOP, runaway reactions, pressure relief sizing)'
+  ],
+  'civil-engineering': [
+    'structural analysis and design (determinate/indeterminate structures, bending moments, shear force, deflection, Eurocodes/IS codes)',
+    'geotechnical engineering and soil mechanics (shear strength, Mohr-Coulomb, consolidation, bearing capacity, Darcy law of permeability)',
+    'hydraulics and water resources (open channel flow, Manning equation, Bernoulli energy equation, hydraulic jumps, pipe networks)',
+    'transportation engineering (highway geometric design, sight distances, flexible/rigid pavement design, traffic flow theory)',
+    'surveying and leveling (theodolite, total station, triangulation, contouring, GPS surveying)',
+    'environmental engineering (water treatment, activated sludge process, coagulant dosing, BOD5/COD testing)',
+    'concrete technology and construction materials (compressive strength, water-cement ratio, prestressed concrete, slump test)'
+  ],
+  'mechanical-engineering': [
+    'engineering thermodynamics (Rankine, Brayton, Otto, Diesel, Carnot cycles, entropy generation, exergy analysis)',
+    'fluid mechanics and turbomachinery (continuity, Navier-Stokes, boundary layer theory, Pelton/Francis turbines, centrifugal pumps)',
+    'heat transfer (conduction, convection, radiation, Stefan-Boltzmann, Biot and Fourier dimensionless numbers)',
+    'mechanics of materials and solid mechanics (axial stress, torsional shear, Mohr circle of stress, beam deflection, Euler column buckling)',
+    'theory of machines and dynamics (four-bar linkages, gear trains, epicyclic gears, vibration damping, rotor balancing)',
+    'manufacturing and materials science (casting, welding metallurgy, CNC machining, heat treatment, iron-carbon phase diagram, fatigue failure)',
+    'mechanical machine design (shaft design, rolling element bearings, bolted joints, failure criteria - Von Mises, Tresca)'
+  ],
+  'electrical-engineering': [
+    'circuit analysis and network theory (Kirchhoff laws, Thevenin and Norton equivalents, RLC transient response, AC phasor analysis)',
+    'electrical machines (transformers, three-phase induction motors, synchronous generators, DC machines, torque-slip curves)',
+    'power systems (transmission lines, load flow, short circuit fault analysis, symmetrical components, power factor correction)',
+    'control systems (transfer functions, root locus, Bode and Nyquist stability criteria, state-space representations)',
+    'electromagnetics (Maxwell equations, wave propagation, transmission line reflections, Poynting vector, skin depth)',
+    'analog and digital electronics (operational amplifiers, BJT and MOSFET small-signal models, logic gates, ADC/DAC conversion)'
+  ],
+  'architectural-engineering': [
+    'building envelope systems (vapor barriers/retarders, thermal insulation, moisture migration, fenestration, U-values, R-values)',
+    'building structural systems (load paths, framing, lateral wind and seismic resistance, diaphragms, shear walls)',
+    'HVAC and building mechanical systems (psychrometric chart, sensible and latent cooling loads, air distribution, chiller plants)',
+    'architectural lighting and daylighting (luminous flux, illuminance, daylight factors, glare rating)',
+    'architectural acoustics (reverberation time, Sabine formula, sound transmission class - STC, impact isolation class - IIC)',
+    'building plumbing, fire protection, and codes (sprinkler hydraulics, egress design, ASHRAE 90.1 energy standards)'
+  ],
+  'biomedical-engineering': [
+    'biomaterials and tissue engineering (biocompatibility, bioinert and bioactive ceramics, scaffold degradation, cell adhesion)',
+    'biomechanics (musculoskeletal mechanics, bone stress-strain curves, hemodynamics, Poiseuille flow, prosthetic joint mechanics)',
+    'biomedical instrumentation and biosensors (ECG/EEG electrodes, biopotential instrumentation amplifiers, CMRR, noise filtering)',
+    'medical imaging systems (MRI relaxation times T1/T2, CT Hounsfield units, ultrasound acoustic impedance, PET/SPECT radiation physics)',
+    'physiological system modeling (Hodgkin-Huxley action potentials, cardiovascular compliance, respiratory resistance)'
+  ],
+  'computer-science': [
+    'data structures (balanced binary search trees, B-trees, hash maps, heaps, disjoint-set union, graphs)',
+    'algorithms and complexity (sorting, dynamic programming, Dijkstra, A*, Big-O notation, NP-completeness)',
+    'operating systems (virtual memory, page replacement, thread synchronization, semaphores, process scheduling, deadlocks)',
+    'computer networks (TCP sliding window, congestion control, routing protocols BGP/OSPF, DNS, socket programming)',
+    'database systems (relational normalization BCNF/3NF, ACID transactions, indexing B+ trees, query optimization, isolation levels)',
+    'computer architecture (pipelining, branch prediction, cache coherence MESI, memory hierarchy)'
+  ],
+  'environmental-engineering': [
+    'water and wastewater treatment (coagulation, flocculation, activated sludge, anaerobic digestion, BOD5/COD kinetics)',
+    'air pollution control (cyclone separators, electrostatic precipitators, wet scrubbers, flue gas desulfurization)',
+    'solid and hazardous waste management (sanitary landfill composite liners, leachate collection, incineration emissions, RCRA standards)',
+    'groundwater remediation (Darcy law, contaminant transport, pump-and-treat, permeable reactive barriers, adsorption isotherms)'
+  ]
+};
 
-  if (!apiKey) {
-    console.log(`[GeminiService] No GEMINI_API_KEY provided. Using dynamic technical question bank for "${domainName}".`);
-    const fallback = generateDomainFallbackBank(domainName, existingQuestionTexts);
-    return filterAndDeduplicate(fallback, existingQuestionTexts);
+function getDomainKnowledgeGuidance(domainName) {
+  const clean = String(domainName || '').toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+  for (const [k, topics] of Object.entries(DOMAIN_KNOWLEDGE_AREAS)) {
+    if (clean === k || clean.includes(k) || k.includes(clean)) {
+      return topics;
+    }
+  }
+  for (const [k, topics] of Object.entries(DOMAIN_KNOWLEDGE_AREAS)) {
+    const kWords = k.split('-');
+    const cleanWords = clean.split('-');
+    if (kWords.some(w => cleanWords.includes(w) && w.length > 3)) {
+      return topics;
+    }
+  }
+  return null;
+}
+
+/**
+ * Strict Semantic Domain Relevance Validation
+ * Rejects questions that merely mention the domain name or contain cross-domain bleed
+ */
+function validateSemanticDomainQuestion(q, domainName) {
+  if (!q || !q.question_text || !Array.isArray(q.options) || q.options.length !== 4) return false;
+  
+  const qText = q.question_text.trim();
+  const dLower = String(domainName || '').toLowerCase();
+
+  // 1. Minimum question length to ensure technical depth
+  if (qText.length < 25) return false;
+
+  // 2. Reject generic placeholder and template patterns where domain name was just injected
+  const genericBannedPatterns = [
+    /which of the following is an important concept in/i,
+    /which of the following is a primary concept in/i,
+    /which of the following is essential in/i,
+    /which statement correctly describes .*(control flow|syntax & operators|oop & inheritance|pointers & memory)/i,
+    /what constitutes the ultimate benchmark of engineering excellence in production/i,
+    /when profiling memory bottlenecks/i,
+    /what role does dependency injection/i,
+    /when orchestrating distributed microservices/i,
+    /which strategy best minimizes downtime during continuous delivery/i,
+    /which data protection principle is mandatory/i,
+    /what is an important aspect of .*\?/i,
+    /is an important tool in/i,
+    /package\.json/i,
+    /dangling event listener/i
+  ];
+  if (genericBannedPatterns.some(p => p.test(qText))) {
+    console.warn(`[GeminiService] Question rejected: Generic template pattern detected: "${qText.substring(0, 60)}..."`);
+    return false;
   }
 
-  const prompt = `You are a Principal Technical Interviewer and Senior Software Architect.
-Generate an authoritative, technically rigorous question bank of exactly 30 unique multiple-choice questions for the domain: "${domainName}".
+  // 3. Reject cross-domain bleed: Software/coding questions on non-software engineering disciplines
+  const isSoftwareDomain = /computer|software|programming|python|java|web|frontend|backend|react|javascript|c\+\+|dsa|data science|ai|machine learning|cloud|devops|cybersecurity/i.test(dLower);
+  
+  if (!isSoftwareDomain) {
+    const softwareBleedTerms = [
+      /\bhtml\b/i, /\bcss\b/i, /\bjavascript\b/i, /\bpython\b/i, /\bjava class\b/i,
+      /\bpackage\.json\b/i, /\bnpm\b/i, /\breact\b/i, /\bdatabase normalization\b/i,
+      /\bsql query\b/i, /\bforeign key\b/i, /\bpointer arithmetic\b/i,
+      /\bcontrol flow\b/i, /\boop\b/i, /\bobject-oriented\b/i, /\bcompiler\b/i,
+      /\bstack overflow\b/i, /\bgarbage collection\b/i, /\bapi endpoint\b/i
+    ];
+    for (const term of softwareBleedTerms) {
+      if (term.test(qText)) {
+        console.warn(`[GeminiService] Question rejected: Cross-domain software bleed in non-software domain "${domainName}": "${qText.substring(0, 60)}..."`);
+        return false;
+      }
+    }
+  }
 
+  // 4. Verify all 4 options are distinct, non-empty, and substantive
+  const optTexts = q.options.map(o => (o.text || '').trim());
+  const uniqueOpts = new Set(optTexts.map(t => t.toLowerCase()));
+  if (uniqueOpts.size !== 4) return false;
+  if (optTexts.some(t => t.length < 2)) return false;
+
+  return true;
+}
+
+/**
+ * Call Google Gemini API to generate technical questions for a domain with strict semantic relevance.
+ */
+async function generateDomainQuestionsWithGemini(domainName, existingQuestionTexts = [], apiKeyOverride = null, targetCount = 10) {
+  const apiKey = apiKeyOverride || process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
+  const count = Math.max(5, Math.min(30, Number(targetCount) || 10));
+  const easyCount = Math.max(1, Math.round(count * 0.34));
+  const medCount = Math.max(1, Math.round(count * 0.33));
+  const hardCount = Math.max(1, count - easyCount - medCount);
+
+  if (!apiKey) {
+    console.log(`[GeminiService] No GEMINI_API_KEY provided for "${domainName}".`);
+    throw new Error('No GEMINI_API_KEY provided');
+  }
+
+  const knowledgeGuidance = getDomainKnowledgeGuidance(domainName);
+  let guidanceText = '';
+  if (knowledgeGuidance && knowledgeGuidance.length > 0) {
+    guidanceText = `
+CORE TECHNICAL SYLLABUS FOR ${domainName.toUpperCase()}:
+Questions should be distributed across genuine core subjects in ${domainName}, including:
+${knowledgeGuidance.map(t => `- ${t}`).join('\n')}
+`;
+  } else {
+    guidanceText = `
+CORE PRINCIPLE FOR ${domainName.toUpperCase()}:
+Every question must test authentic, field-specific scientific, engineering, design, or professional principles and calculation methods specific to "${domainName}".
+`;
+  }
+
+  const prompt = `You are a distinguished Professor, Senior Technical Assessor, and Subject Matter Specialist in "${domainName}".
+
+CRITICAL REQUIREMENT — STRICT SEMANTIC DOMAIN RELEVANCE:
+"Generate questions that genuinely assess knowledge of the specified domain. Do not merely mention the domain name. The underlying concept, terminology, scenario, and expected knowledge must be relevant to the domain. Reject and regenerate any question that is primarily about an unrelated field."
+
+STRICT ANTI-PATTERNS (ABSOLUTELY FORBIDDEN):
+- DO NOT generate a generic template question and merely insert "${domainName}" into it.
+  BAD: "Which of the following is an important concept in ${domainName}?"
+  BAD: "What constitutes best practice in modern ${domainName}?"
+  BAD: "In ${domainName}, what is the role of variables, control flow, and functions?" (unless ${domainName} is Computer Science)
+- DO NOT produce cross-domain bleed. If "${domainName}" is an engineering/science discipline (like Chemical, Civil, Mechanical, Architectural, Biomedical), DO NOT include software engineering, coding syntax, HTML/CSS, package managers, or IT terminology.
+- The actual question, the technical scenario, all 4 answer options, and the explanation MUST REQUIRE genuine knowledge of ${domainName} to solve.
+${guidanceText}
 DIFFICULTY DISTRIBUTION (STRICT REQUIREMENT):
-- Exactly 10 Easy questions (core syntax, definitions, fundamental rules)
-- Exactly 10 Medium questions (practical logic, OOP, error handling, standard libraries, intermediate design)
-- Exactly 10 Hard questions (internals, memory model, concurrency, performance optimization, edge cases, deep architecture)
+- Exactly ${easyCount} Easy questions (foundational principles, core terms, fundamental laws and equations in ${domainName})
+- Exactly ${medCount} Medium questions (practical engineering applications, standard calculations, system analysis in ${domainName})
+- Exactly ${hardCount} Hard questions (advanced analysis, complex scenarios, edge cases, professional engineering/design calculations in ${domainName})
 
 FOR EACH QUESTION:
-1. question_text: Clear, unambiguous, professional technical question.
-2. topic: Specific topic/concept (e.g. "Generators", "Memory Leaks", "Indexing", "Flexbox").
+1. question_text: Clear, unambiguous, professional technical question specifically requiring knowledge of ${domainName}.
+2. topic: Specific sub-topic within ${domainName}.
 3. difficulty: Must be "easy", "medium", or "hard".
-4. explanation: 1-2 sentences explaining why the correct answer is right.
-5. options: Array of exactly 4 distinct choices.
+4. explanation: 1-2 sentences explaining the technical reason why the correct answer is right.
+5. options: Array of exactly 4 distinct, technically plausible choices relevant to ${domainName}.
 6. correct_index: Integer 0, 1, 2, or 3 indicating which option in "options" is the single correct answer.
 
-OUTPUT FORMAT: Return ONLY a valid JSON array of 30 question objects. Do NOT include markdown code blocks, backticks, or any conversational text.
+OUTPUT FORMAT: Return ONLY a valid JSON array of ${count} question objects. Do NOT include markdown code blocks, backticks, or any conversational text.
 Example object structure:
 {
   "question_text": "...",
@@ -151,37 +330,56 @@ Example object structure:
 }`;
 
   try {
-    console.log(`[GeminiService] Contacting Gemini API for 30 questions in "${domainName}"...`);
+    console.log(`[GeminiService] Contacting Gemini API with strict semantic prompt for ${count} questions in "${domainName}"...`);
     const responseText = await callGeminiApi(prompt, apiKey);
     const parsedQuestions = parseGeminiResponse(responseText, domainName);
 
-    if (parsedQuestions.length >= 20) {
-      console.log(`[GeminiService] Successfully generated ${parsedQuestions.length} questions via Gemini for "${domainName}".`);
-      return filterAndDeduplicate(parsedQuestions, existingQuestionTexts);
+    if (parsedQuestions.length >= Math.min(count, 5)) {
+      console.log(`[GeminiService] Successfully generated ${parsedQuestions.length} semantically validated questions via Gemini for "${domainName}".`);
+      return filterAndDeduplicate(parsedQuestions, existingQuestionTexts).slice(0, count);
     } else {
-      console.warn(`[GeminiService] Gemini returned only ${parsedQuestions.length} valid questions. Supplementing with curated bank.`);
-      const fallback = generateDomainFallbackBank(domainName);
-      const combined = [...parsedQuestions, ...fallback];
-      return filterAndDeduplicate(combined, existingQuestionTexts).slice(0, 30);
+      console.warn(`[GeminiService] Gemini returned ${parsedQuestions.length} valid questions for "${domainName}".`);
+      return parsedQuestions;
     }
   } catch (err) {
-    console.error(`[GeminiService] Error calling Gemini API: ${err.message}. Falling back to curated bank.`);
-    const fallback = generateDomainFallbackBank(domainName);
-    return filterAndDeduplicate(fallback, existingQuestionTexts);
+    console.error(`[GeminiService] Error calling Gemini API for "${domainName}": ${err.message}.`);
+    throw err;
   }
 }
 
 /**
  * Execute HTTP POST request to Google Gemini API
  */
-function callGeminiApi(prompt, apiKey) {
+async function callGeminiApi(prompt, apiKey) {
+  const modelsToTry = [
+    'gemini-flash-latest',
+    'gemini-flash-lite-latest',
+    'gemini-3.5-flash-lite',
+    'gemini-3.6-flash',
+    'gemini-3.5-flash'
+  ];
+  let lastError = null;
+
+  for (const model of modelsToTry) {
+    try {
+      const res = await attemptGeminiModel(model, prompt, apiKey);
+      if (res) return res;
+    } catch (err) {
+      lastError = err;
+      console.warn(`[GeminiService] Model ${model} failed (${err.message}), trying next fallback...`);
+    }
+  }
+
+  throw lastError || new Error('All Gemini models failed');
+}
+
+function attemptGeminiModel(model, prompt, apiKey) {
   return new Promise((resolve, reject) => {
-    // Try gemini-2.5-flash or gemini-1.5-flash
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
     const postData = JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: {
-        temperature: 0.4,
+        temperature: 0.35,
         maxOutputTokens: 8192,
         responseMimeType: 'application/json',
       }
@@ -196,7 +394,7 @@ function callGeminiApi(prompt, apiKey) {
         'Content-Type': 'application/json',
         'Content-Length': Buffer.byteLength(postData)
       },
-      timeout: 30000
+      timeout: 45000
     };
 
     const req = https.request(options, (res) => {
@@ -212,44 +410,7 @@ function callGeminiApi(prompt, apiKey) {
             reject(new Error(`Failed to parse Gemini response JSON: ${e.message}`));
           }
         } else {
-          // If gemini-2.5-flash endpoint failed, try gemini-1.5-flash fallback
-          if (url.includes('gemini-2.5-flash')) {
-            console.log('[GeminiService] Retrying with gemini-1.5-flash...');
-            const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-            const fbParsed = new URL(fallbackUrl);
-            const fbOptions = {
-              hostname: fbParsed.hostname,
-              path: fbParsed.pathname + fbParsed.search,
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Content-Length': Buffer.byteLength(postData)
-              },
-              timeout: 30000
-            };
-            const fbReq = https.request(fbOptions, (fbRes) => {
-              let fbData = '';
-              fbRes.on('data', c => fbData += c);
-              fbRes.on('end', () => {
-                if (fbRes.statusCode >= 200 && fbRes.statusCode < 300) {
-                  try {
-                    const fbJson = JSON.parse(fbData);
-                    const fbText = fbJson.candidates?.[0]?.content?.parts?.[0]?.text || '';
-                    resolve(fbText);
-                  } catch (e) {
-                    reject(e);
-                  }
-                } else {
-                  reject(new Error(`Gemini API HTTP ${fbRes.statusCode}: ${fbData}`));
-                }
-              });
-            });
-            fbReq.on('error', reject);
-            fbReq.write(postData);
-            fbReq.end();
-          } else {
-            reject(new Error(`Gemini API HTTP ${res.statusCode}: ${data}`));
-          }
+          reject(new Error(`HTTP ${res.statusCode}: ${data.slice(0, 200)}`));
         }
       });
     });
@@ -257,7 +418,7 @@ function callGeminiApi(prompt, apiKey) {
     req.on('error', reject);
     req.on('timeout', () => {
       req.destroy();
-      reject(new Error('Gemini API request timed out (30s limit)'));
+      reject(new Error(`Gemini model ${model} timed out (45s limit)`));
     });
 
     req.write(postData);
@@ -266,11 +427,10 @@ function callGeminiApi(prompt, apiKey) {
 }
 
 /**
- * Clean & parse Gemini API response into standardized question structure
+ * Clean & parse Gemini API response into standardized question structure with semantic domain validation
  */
 function parseGeminiResponse(rawText, domainName) {
   let cleaned = rawText.trim();
-  // Strip code fences if present
   if (cleaned.startsWith('```json')) {
     cleaned = cleaned.replace(/^```json\s*/, '').replace(/\s*```$/, '');
   } else if (cleaned.startsWith('```')) {
@@ -281,18 +441,28 @@ function parseGeminiResponse(rawText, domainName) {
   try {
     items = JSON.parse(cleaned);
   } catch (err) {
-    // Attempt regex extraction of JSON array
     const match = cleaned.match(/\[\s*\{.*\}\s*\]/s);
     if (match) {
       try { items = JSON.parse(match[0]); } catch {}
     }
   }
 
-  if (!Array.isArray(items)) return [];
+  if (!Array.isArray(items)) {
+    if (items && Array.isArray(items.questions)) {
+      items = items.questions;
+    } else if (items && typeof items === 'object') {
+      const foundArray = Object.values(items).find(v => Array.isArray(v));
+      if (foundArray) items = foundArray;
+      else return [];
+    } else {
+      return [];
+    }
+  }
 
   const standardized = [];
   for (const item of items) {
-    if (!item.question_text || !Array.isArray(item.options) || item.options.length !== 4) {
+    const qText = String(item.question_text || item.question || '').trim();
+    if (!qText || !Array.isArray(item.options) || item.options.length !== 4) {
       continue;
     }
 
@@ -300,22 +470,44 @@ function parseGeminiResponse(rawText, domainName) {
       ? String(item.difficulty).toLowerCase()
       : 'medium';
 
-    const correctIdx = typeof item.correct_index === 'number' && item.correct_index >= 0 && item.correct_index < 4
-      ? item.correct_index
-      : 0;
+    let correctIdx = 0;
+    if (typeof item.correct_index === 'number' && item.correct_index >= 0 && item.correct_index < 4) {
+      correctIdx = item.correct_index;
+    } else if (typeof item.correctIndex === 'number' && item.correctIndex >= 0 && item.correctIndex < 4) {
+      correctIdx = item.correctIndex;
+    } else if (typeof item.answer === 'number' && item.answer >= 0 && item.answer < 4) {
+      correctIdx = item.answer;
+    }
 
-    const formattedOptions = item.options.map((optText, idx) => ({
-      text: String(optText).trim(),
-      is_correct: idx === correctIdx
-    }));
+    const formattedOptions = item.options.map((opt, idx) => {
+      let optText = '';
+      let isCorr = (idx === correctIdx);
+      if (typeof opt === 'string') {
+        optText = opt.trim();
+      } else if (typeof opt === 'object' && opt !== null) {
+        optText = String(opt.text || opt.option_text || opt.option || Object.values(opt)[0] || '').trim();
+        if (typeof opt.is_correct === 'boolean') isCorr = opt.is_correct;
+      }
+      return {
+        text: optText,
+        is_correct: isCorr
+      };
+    });
 
-    standardized.push({
-      question_text: String(item.question_text).trim(),
+    const candidate = {
+      question_text: qText,
       topic: item.topic ? String(item.topic).trim() : domainName,
       difficulty: diff,
-      explanation: item.explanation ? String(item.explanation).trim() : `Correct answer for ${domainName} question.`,
+      explanation: item.explanation ? String(item.explanation).trim() : `Correct assessment evaluation for ${domainName}.`,
       options: formattedOptions
-    });
+    };
+
+    // Strict semantic domain relevance validation
+    if (validateSemanticDomainQuestion(candidate, domainName)) {
+      standardized.push(candidate);
+    } else {
+      console.warn(`[GeminiService] Filtered out non-relevant question for "${domainName}": "${qText.substring(0, 50)}..."`);
+    }
   }
 
   return standardized;
@@ -351,5 +543,6 @@ function normalizeText(str) {
 module.exports = {
   generateDomainQuestionsWithGemini,
   generateDomainFallbackBank,
-  filterAndDeduplicate
+  filterAndDeduplicate,
+  validateSemanticDomainQuestion
 };

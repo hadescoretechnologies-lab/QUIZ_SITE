@@ -4,7 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 const { supabaseFetch, SUPABASE_URL } = require('../lib/supabaseAdmin');
-const { generateDomainQuestionsWithGemini } = require('./geminiService');
+const { generateDomainQuestionsWithGemini, validateSemanticDomainQuestion } = require('./geminiService');
 const domainQuestionBank = require('../data/domainQuestionBank');
 
 const CONFIG_FILE = path.join(__dirname, '../data/quizConfig.json');
@@ -36,8 +36,8 @@ function saveLocalConfigFile(config) {
 // In-memory default config fallback (10 questions, 1 attempt, 15 minutes)
 let memoryConfig = {
   question_bank_size: 30,
-  questions_per_quiz: 10,
-  passing_questions_count: 5,
+  questions_per_quiz: 30,
+  passing_questions_count: 15,
   quiz_duration_minutes: 15,
   max_attempts: 1,
   passing_percentage: 50,
@@ -245,17 +245,78 @@ function cleanQuestionText(text) {
     .trim();
 }
 
+// Canonical domain names map
+const CANONICAL_DOMAIN_NAMES = {
+  'python-programming': 'Python Programming',
+  'python': 'Python Programming',
+  'full-stack-web-development': 'Full Stack Web Development',
+  'web-development': 'Full Stack Web Development',
+  'web-dev': 'Full Stack Web Development',
+  'react': 'Frontend Development (React)',
+  'javascript': 'JavaScript Development',
+  'data-science-machine-learning': 'Data Science & Machine Learning',
+  'ai-ml': 'AI & Machine Learning',
+  'ai': 'Artificial Intelligence',
+  'ml': 'Machine Learning',
+  'data-science': 'Data Science',
+  'java-backend-architecture': 'Java Backend Architecture',
+  'java': 'Java Backend Architecture',
+  'cloud-devops': 'Cloud Computing & DevOps',
+  'cloud': 'Cloud Computing',
+  'devops': 'DevOps Engineering',
+  'cybersecurity-ethical-hacking': 'Cybersecurity & Ethical Hacking',
+  'cybersecurity': 'Cybersecurity',
+  'cyber-security': 'Cybersecurity',
+  'security': 'Cybersecurity',
+  'ui-ux-design': 'UI/UX Design',
+  'ui-ux': 'UI/UX Design',
+  'prompt-engineering': 'Generative AI & Prompt Engineering',
+  'prompt': 'Generative AI & Prompt Engineering',
+  'generative-ai': 'Generative AI',
+  'biotechnology': 'Biotechnology',
+  'biotech': 'Biotechnology',
+  'dsa': 'Data Structures & Algorithms',
+  'cpp': 'C++ Programming',
+  'c': 'C Programming',
+  'business-management': 'Business Management',
+  'chemical-engineering': 'Chemical Engineering',
+  'chemical': 'Chemical Engineering',
+  'chem-eng': 'Chemical Engineering',
+  'chemical-eng': 'Chemical Engineering',
+  'civil-engineering': 'Civil Engineering',
+  'civil-eng': 'Civil Engineering',
+  'electrical-engineering': 'Electrical Engineering',
+  'eee-eng': 'Electrical Engineering',
+  'mechanical-engineering': 'Mechanical Engineering',
+  'mech-eng': 'Mechanical Engineering',
+  'core-engineering': 'Mechanical Engineering',
+  'architectural-engineering': 'Architectural Engineering',
+  'aerospace-engineering': 'Aerospace Engineering',
+  'aerospace-automobile': 'Aerospace & Automobile Engineering',
+  'biomedical-engineering': 'Biomedical Engineering',
+  'environmental-engineering': 'Environmental Engineering',
+  'computer-science': 'Computer Science',
+  'digital-marketing': 'Digital Marketing',
+  'finance-accounting': 'Finance & Accounting',
+  'robotics': 'Robotics',
+  'docker': 'Docker & Kubernetes',
+  'golang': 'Go (Golang)',
+  'fashion-designing': 'Fashion Designing',
+  'iot': 'Internet of Things (IoT)',
+  'iot-embedded': 'Internet of Things (IoT)',
+  'internet-of-things': 'Internet of Things (IoT)',
+  'embedded-systems': 'Embedded Systems'
+};
+
 /**
  * Start a Quiz Attempt:
- * - Level 2 Deduplication (retakes prioritize unseen questions for this student)
- * - Randomizes questions (configured number, default 10)
- * - Shuffles options per question
+ * - Direct Gemini AI generation for effectiveDomain
+ * - Randomizes questions and shuffles options per question
  * - CRITICAL SECURITY: Strips `is_correct` before returning to client
  */
-async function startQuizAttempt(studentId, domainId, requestedTargetCount) {
+async function startQuizAttempt(studentId, domainId, requestedTargetCount, domainNameOverride = null) {
   const config = await getQuizConfig();
   const maxAttempts = config.max_attempts || 1;
-  const hasGeminiKey = !!(config.gemini_api_key || process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY);
 
   // UUID validation: ensure studentId is valid hex UUID for DB
   const validStudentId = isValidUuid(studentId) ? studentId : '9bf23b8a-9669-4070-9871-1fdf9f84ca15';
@@ -301,6 +362,25 @@ async function startQuizAttempt(studentId, domainId, requestedTargetCount) {
     'mechanical-engineering': 'd0000000-0000-0000-0000-000000000015',
     'mech-eng': 'd0000000-0000-0000-0000-000000000015',
     'core-engineering': 'd0000000-0000-0000-0000-000000000015',
+    'chemical-engineering': 'd0000000-0000-0000-0000-000000000022',
+    'chemical': 'd0000000-0000-0000-0000-000000000022',
+    'chem-eng': 'd0000000-0000-0000-0000-000000000022',
+    'architectural-engineering': '31c4ebdf-3c20-469f-a123-a2fb0d9b4d5f',
+    'aerospace-engineering': '3aa9bfe8-946a-4b71-bc4a-4ed333cbeae8',
+    'aerospace-automobile': '3aa9bfe8-946a-4b71-bc4a-4ed333cbeae8',
+    'digital-marketing': '8861c787-9d9b-49c0-8010-f0466f721297',
+    'finance-accounting': '379dae86-22a4-482f-8855-20a5b7aa96c0',
+    'robotics': '9e132e4f-4246-49b1-ac25-8eb930bb9d47',
+    'docker': 'a11b1e19-b119-4a46-91a8-34e416aab465',
+    'golang': '8868bcfe-be76-41fd-bc16-1d877da002dc',
+    'fashion-designing': '05940605-b7b0-4a91-93e9-447089110a78',
+    'biomedical-engineering': 'd0000000-0000-0000-0000-000000000019',
+    'environmental-engineering': 'd0000000-0000-0000-0000-000000000020',
+    'computer-science': 'd0000000-0000-0000-0000-000000000021',
+    'iot': 'd0000000-0000-0000-0000-000000000016',
+    'iot-embedded': 'd0000000-0000-0000-0000-000000000016',
+    'internet-of-things': 'd0000000-0000-0000-0000-000000000016',
+    'embedded-systems': 'd0000000-0000-0000-0000-000000000016',
   };
 
   // Resolve domainId if non-UUID (e.g. "dyn-ai-ml" or slug like "ai-ml")
@@ -322,35 +402,32 @@ async function startQuizAttempt(studentId, domainId, requestedTargetCount) {
           validDomainId = foundDomain[0].id;
           cleanSlug = foundDomain[0].slug || cleanSlug;
         } else {
-          const foundList = await supabaseFetch('domains?select=id,slug&limit=20');
-          const match = (foundList || []).find(d => d.slug.includes(cleanSlug) || cleanSlug.includes(d.slug));
+          const foundList = await supabaseFetch('domains?select=id,slug&limit=50');
+          const match = (foundList || []).find(d => {
+            const dSlug = (d.slug || '').toLowerCase();
+            return dSlug === cleanSlug;
+          });
           if (match) {
             validDomainId = match.id;
             cleanSlug = match.slug;
-          } else {
-            // Dynamically ensure custom domain exists in Supabase domains table so it never links to Python!
-            const dynamicName = cleanSlug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-            try {
-              const inserted = await supabaseFetch('domains', {
-                method: 'POST',
-                headers: { 'Prefer': 'return=representation' },
-                body: [{
-                  name: dynamicName,
-                  slug: cleanSlug,
-                  active: true,
-                  question_count: 30
-                }]
-              });
-              if (Array.isArray(inserted) && inserted.length > 0) {
-                validDomainId = inserted[0].id;
-              }
-            } catch {}
           }
         }
       } catch {
         validDomainId = null;
       }
     }
+  }
+
+  // Determine effectiveDomain strictly based on domainNameOverride or cleanSlug
+  let effectiveDomain = (domainNameOverride && String(domainNameOverride).trim()) || '';
+  if (effectiveDomain) {
+    const derivedSlug = effectiveDomain.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    if (cleanSlug === 'others' || cleanSlug === 'other' || cleanSlug === 'custom-topic' || cleanSlug === 'custom' || !cleanSlug) {
+      cleanSlug = derivedSlug;
+    }
+  }
+  if (!effectiveDomain && cleanSlug) {
+    effectiveDomain = CANONICAL_DOMAIN_NAMES[cleanSlug] || cleanSlug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   }
 
   // 1. Check student attempt count
@@ -362,151 +439,98 @@ async function startQuizAttempt(studentId, domainId, requestedTargetCount) {
   }
   const attemptCount = Array.isArray(attempts) ? attempts.length : 0;
 
-  // 2. Fetch questions previously seen by this student in this domain (Level 2 Deduplication)
-  const seenQuestionIds = new Set();
-  try {
-    if (attemptCount > 0) {
-      const attemptIds = attempts.map(a => a.id);
-      const pastAnswers = await supabaseFetch(`quiz_answers?attempt_id=in.(${attemptIds.join(',')})&select=question_id`);
-      if (Array.isArray(pastAnswers)) {
-        pastAnswers.forEach(a => seenQuestionIds.add(a.question_id));
-      }
-    }
-  } catch (historyErr) {
-    console.warn('[QuizEngine] Note reading past attempt history:', historyErr.message);
-  }
-
-  // 3. Fetch all active questions for this domain
-  let allQuestions = [];
-  if (validDomainId) {
-    try {
-      const fetched = await supabaseFetch(`questions?domain_id=eq.${validDomainId}&active=eq.true&select=id,question_text,difficulty,marks,explanation,display_order`);
-      if (Array.isArray(fetched)) allQuestions = fetched;
-    } catch (dbErr) {
-      console.warn('[QuizEngine] Error fetching DB questions:', dbErr.message);
-    }
-  }
-
   const shuffleArray = (arr) => [...arr].sort(() => Math.random() - 0.5);
 
-  // If DB questions for this domain are insufficient (< 20) or domain is custom/bank domain, load the authentic domain-specific questions!
-  if (!Array.isArray(allQuestions) || allQuestions.length < 20) {
-    const domainBankQs = domainQuestionBank.getDomainQuestions(cleanSlug || domainId, requestedTargetCount || 30);
-    if (domainBankQs && domainBankQs.length > 0) {
-      allQuestions = domainBankQs;
-    }
-  }
-
-  const getTierPools = (qList) => {
-    const easy = (qList || []).filter(q => String(q.difficulty).toLowerCase() === 'easy');
-    const medium = (qList || []).filter(q => String(q.difficulty).toLowerCase() === 'medium');
-    const hard = (qList || []).filter(q => ['hard', 'advanced'].includes(String(q.difficulty).toLowerCase()));
-    return { easy, medium, hard };
-  };
-
-  let { easy: easyPool, medium: mediumPool, hard: hardPool } = getTierPools(allQuestions);
-
-  let unseenEasy = easyPool.filter(q => !seenQuestionIds.has(q.id));
-  let unseenMedium = mediumPool.filter(q => !seenQuestionIds.has(q.id));
-  let unseenHard = hardPool.filter(q => !seenQuestionIds.has(q.id));
-
-  // Helper to select exactly N questions prioritizing unseen, then supplementing from pool without duplicates
-  const selectTierQuestions = (unseenList, fullPool, count = 10) => {
-    const shuffledUnseen = shuffleArray(unseenList);
-    const selected = shuffledUnseen.slice(0, count);
-
-    if (selected.length < count) {
-      const selectedIdSet = new Set(selected.map(q => q.id));
-      const remainingPool = shuffleArray(fullPool.filter(q => !selectedIdSet.has(q.id)));
-      const needed = count - selected.length;
-      selected.push(...remainingPool.slice(0, needed));
-    }
-    return selected;
-  };
-
-  // 4. Dynamic difficulty sequence based on requestedTargetCount or configured questions_per_quiz:
   const targetTotal = Math.max(1, Number(requestedTargetCount) || config.questions_per_quiz || 10);
   const easyCount = Math.max(1, Math.round(targetTotal * 0.34));
   const medCount = Math.max(1, Math.round(targetTotal * 0.33));
   const hardCount = Math.max(0, targetTotal - easyCount - medCount);
 
-  const selectedEasy = selectTierQuestions(unseenEasy, easyPool, easyCount);
-  const selectedMedium = selectTierQuestions(unseenMedium, mediumPool, medCount);
-  const selectedHard = selectTierQuestions(unseenHard, hardPool, hardCount);
+  let selectedQuestions = [];
+  const apiKey = config.gemini_api_key || process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
 
-  let selectedQuestions = [...selectedEasy, ...selectedMedium, ...selectedHard];
+  // 1. Try to load authentic domain questions specifically for effectiveDomain FIRST for fast response times
+  let authenticBank = [];
+  try {
+    authenticBank = domainQuestionBank.getDomainQuestions(cleanSlug || effectiveDomain, targetTotal, effectiveDomain) || [];
+  } catch (e) {}
 
-  // If pool didn't have enough questions for tiers, fill up to targetTotal from all available questions
-  if (selectedQuestions.length < targetTotal && Array.isArray(allQuestions)) {
-    const existingIds = new Set(selectedQuestions.map(q => q.id));
-    const leftovers = shuffleArray(allQuestions.filter(q => !existingIds.has(q.id)));
-    for (const rem of leftovers) {
-      if (selectedQuestions.length >= targetTotal) break;
-      selectedQuestions.push(rem);
-      existingIds.add(rem.id);
-    }
-  }
-
-  // Ensure exact targetTotal length
-  if (selectedQuestions.length > targetTotal) {
-    selectedQuestions = selectedQuestions.slice(0, targetTotal);
-  }
-  const selectedQuestionIds = selectedQuestions.map(q => q.id);
-
-  // 5. Fetch options for selected questions (from DB or already attached from domainQuestionBank)
-  const optionsMap = {};
-
-  // First attach any options already on question objects (from domainQuestionBank)
-  selectedQuestions.forEach(q => {
-    if (Array.isArray(q.options) && q.options.length > 0) {
-      optionsMap[q.id] = q.options.map(opt => ({
-        id: opt.id,
-        question_id: opt.question_id || q.id,
-        option_text: opt.option_text,
-        option_order: opt.option_order
-      }));
-    }
-  });
-
-  // Then fetch missing options from DB if needed
-  const missingOptionQIds = selectedQuestionIds.filter(id => !optionsMap[id] || optionsMap[id].length === 0);
-  if (missingOptionQIds.length > 0) {
+  if (authenticBank.length > 0) {
+    console.log(`[QuizEngine] Using authentic domain question bank specifically for "${effectiveDomain}" (Instant load).`);
+    selectedQuestions = authenticBank.map((q, idx) => {
+      const tierNum = idx < easyCount ? 1 : idx < (easyCount + medCount) ? 2 : 3;
+      const tierLabel = idx < easyCount ? 'Easy' : idx < (easyCount + medCount) ? 'Medium' : 'Advanced';
+      return {
+        ...q,
+        question_number: idx + 1,
+        tier_number: tierNum,
+        tier_label: tierLabel,
+        options: shuffleArray((q.options || []).map(o => ({
+          id: o.id,
+          question_id: o.question_id || q.id,
+          option_text: o.option_text,
+          option_order: o.option_order
+        })))
+      };
+    });
+  } else if (apiKey && effectiveDomain) {
+    // 2. If it's a CUSTOM domain not in the bank, fall back to Google Gemini to generate questions dynamically
     try {
-      const options = await supabaseFetch(`question_options?question_id=in.(${missingOptionQIds.join(',')})&select=id,question_id,option_text,option_order`);
-      if (Array.isArray(options)) {
-        options.forEach(opt => {
-          if (!optionsMap[opt.question_id]) optionsMap[opt.question_id] = [];
-          optionsMap[opt.question_id].push({
-            id: opt.id,
-            question_id: opt.question_id,
-            option_text: opt.option_text,
-            option_order: opt.option_order
-          });
+      console.log(`[QuizEngine] Calling Gemini API to generate ${targetTotal} assessment questions specifically for custom domain "${effectiveDomain}"...`);
+      const geminiQs = await generateDomainQuestionsWithGemini(effectiveDomain, [], apiKey, targetTotal);
+      const validGeminiQs = (geminiQs || []).filter(gq => validateSemanticDomainQuestion(gq, effectiveDomain));
+
+      if (validGeminiQs.length > 0) {
+        console.log(`[QuizEngine] Successfully validated ${validGeminiQs.length} domain questions from Gemini for "${effectiveDomain}"`);
+        selectedQuestions = validGeminiQs.map((gq, idx) => {
+          const qId = `gemini-${cleanSlug || 'domain'}-${idx + 1}-${Date.now()}`;
+          const rawOpts = gq.options.map((opt, oIdx) => ({
+            id: `${qId}-opt-${String.fromCharCode(97 + oIdx)}`,
+            question_id: qId,
+            option_text: opt.text,
+            option_order: oIdx + 1,
+            is_correct: !!opt.is_correct
+          }));
+          const correctOpt = rawOpts.find(o => o.is_correct) || rawOpts[0];
+          domainQuestionBank.cacheCorrectAnswer(qId, correctOpt.id);
+
+          const tierNum = idx < easyCount ? 1 : idx < (easyCount + medCount) ? 2 : 3;
+          const tierLabel = idx < easyCount ? 'Easy' : idx < (easyCount + medCount) ? 'Medium' : 'Advanced';
+
+          // Shuffle options and strip is_correct for client security
+          const shuffledOpts = shuffleArray(rawOpts).map((o, oIdx) => ({
+            id: o.id,
+            question_id: o.question_id,
+            option_text: o.option_text,
+            option_order: oIdx + 1
+          }));
+
+          return {
+            id: qId,
+            question_number: idx + 1,
+            tier_number: tierNum,
+            tier_label: tierLabel,
+            question_text: cleanQuestionText(gq.question_text),
+            difficulty: gq.difficulty || (tierNum === 1 ? 'easy' : tierNum === 2 ? 'medium' : 'hard'),
+            marks: 1,
+            topic: gq.topic || effectiveDomain,
+            options: shuffledOpts
+          };
         });
       }
-    } catch {}
+    } catch (geminiErr) {
+      console.error(`[QuizEngine] Gemini generation error for custom domain "${effectiveDomain}":`, geminiErr.message);
+      throw new Error(`Failed to generate assessment questions specifically for custom domain ${effectiveDomain}: ${geminiErr.message}`);
+    }
   }
 
-  // Assemble sanitized questions in sequential difficulty order with shuffled options
-  const sanitizedQuestions = selectedQuestions.map((q, idx) => {
-    const qOpts = optionsMap[q.id] || [];
-    const tierNum = idx < easyCount ? 1 : idx < (easyCount + medCount) ? 2 : 3;
-    const tierLabel = idx < easyCount ? 'Easy' : idx < (easyCount + medCount) ? 'Medium' : 'Advanced';
-    return {
-      id: q.id,
-      question_number: idx + 1,
-      tier_number: tierNum,
-      tier_label: tierLabel,
-      question_text: cleanQuestionText(q.question_text),
-      difficulty: q.difficulty || (tierNum === 1 ? 'easy' : tierNum === 2 ? 'medium' : 'hard'),
-      marks: q.marks || 1,
-      topic: q.topic || 'General',
-      options: shuffleArray(qOpts) // Shuffle options for this attempt
-    };
-  });
+  if (selectedQuestions.length === 0) {
+    throw new Error(`Failed to find or generate assessment questions specifically for domain "${effectiveDomain}".`);
+  }
 
+  const sanitizedQuestions = selectedQuestions;
 
-  // 6. Create attempt record with dynamic timer duration
+  // 4. Create attempt record with dynamic timer duration
   const quizDurationMinutes = config.quiz_duration_minutes || config.quiz_timer_minutes || 15;
   const expiresAt = new Date(Date.now() + quizDurationMinutes * 60 * 1000).toISOString();
   const attemptPayload = {
@@ -537,18 +561,19 @@ async function startQuizAttempt(studentId, domainId, requestedTargetCount) {
     console.warn('[QuizEngine] Note on quiz_attempts persistence:', attInsertErr.message);
   }
 
-
   return {
     attemptId: createdAttempt.id,
+    domain_name: effectiveDomain,
+    domain_id: cleanSlug || domainId,
     attemptNumber: attemptCount + 1,
     maxAttempts,
     totalQuestions: sanitizedQuestions.length,
     durationMinutes: quizDurationMinutes,
     durationSeconds: quizDurationMinutes * 60,
     difficultyBreakdown: {
-      easy: selectedEasy.length,
-      medium: selectedMedium.length,
-      hard: selectedHard.length
+      easy: easyCount,
+      medium: medCount,
+      hard: hardCount
     },
     questions: sanitizedQuestions,
     startedAt: createdAttempt.started_at,

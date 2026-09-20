@@ -382,7 +382,7 @@ export default function ResultPage() {
           {/* Main Title & Invitation */}
           <div className="my-5 sm:my-6">
             <h2 className="text-xl sm:text-3xl md:text-4xl font-black tracking-tight text-white leading-tight">
-              Join the <span className="text-amber-400">{domainName}</span> Certified Bootcamp
+              Join the Certified Bootcamp
             </h2>
             <p className="text-slate-300 text-xs sm:text-sm md:text-base mt-2 max-w-2xl leading-relaxed">
               Upskill with live mentor-led sessions, build 2+ real-world portfolio projects, and qualify for our student cash prize pool and placement guidance webinar.

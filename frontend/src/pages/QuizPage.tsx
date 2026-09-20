@@ -72,7 +72,7 @@ export default function QuizPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(30 * 60); // 30 min in seconds
+  const [timeLeft, setTimeLeft] = useState(15 * 60); // 15 min in seconds
   const [showNav, setShowNav] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -306,6 +306,7 @@ export default function QuizPage() {
   }, []);
 
   const quiz = useQuiz(attemptId, domainSlug || '', studentId || '');
+  const hasFetchedRef = useRef(false);
 
   // Timer
   useEffect(() => {
@@ -325,173 +326,112 @@ export default function QuizPage() {
 
   // Load quiz
   useEffect(() => {
+    if (hasFetchedRef.current) return;
+    hasFetchedRef.current = true;
+
     const load = async () => {
       if (!domainSlug) { navigate('/'); return; }
       if (!studentId) { navigate('/'); return; }
 
       try {
-        let domainData: Domain | null = null;
+        const locState = location.state as any;
+        const customName =
+          locState?.customDomainName ||
+          locState?.domainName ||
+          (typeof window !== 'undefined' && window.sessionStorage
+            ? sessionStorage.getItem('active_assessment_domain_name')
+            : null) ||
+          undefined;
 
-        if (isSupabaseConfigured) {
-          try {
-            domainData = await getDomainBySlug(domainSlug);
-          } catch (dErr) {
-            console.warn('[QuizPage] getDomainBySlug error, using fallback:', dErr);
-            domainData = null;
-          }
-        }
+        const authoritativeDomainName =
+          customName ||
+          domainSlug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
-        if (!domainData) {
-          const customName = (location.state as any)?.customDomainName;
-          const cleanName = customName || domainSlug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-          // Dev / Dynamic mode
-          domainData = {
-            id: 'dyn-' + domainSlug,
-            name: cleanName,
-            slug: domainSlug,
-            description: `Assessment for ${cleanName}`,
-            icon: '📝',
-            color: '#6366f1',
-            difficulty: 'intermediate',
-            question_count: 30,
-            estimated_minutes: 20,
-            active: true,
-            display_order: 1,
-            created_at: '',
-            updated_at: '',
-          };
-        } else if ((location.state as any)?.customDomainName) {
-          domainData.name = (location.state as any).customDomainName;
-        }
+        const targetQCount = 30; // Compulsorily 30 questions
+        const targetTimerMinutes = 15; // Compulsorily 15 minutes
+        setTimeLeft(targetTimerMinutes * 60);
+
+        const isUuid = (id?: string) => typeof id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+
+        const domainData: Domain = {
+          id: (locState?.domainId && isUuid(locState.domainId)) ? locState.domainId : ('dyn-' + domainSlug),
+          name: authoritativeDomainName,
+          slug: domainSlug,
+          description: `Skill Assessment for ${authoritativeDomainName}`,
+          icon: '📝',
+          color: '#6366f1',
+          difficulty: 'intermediate',
+          question_count: targetQCount,
+          estimated_minutes: targetTimerMinutes,
+          active: true,
+          display_order: 1,
+          created_at: '',
+          updated_at: '',
+        };
 
         setDomain(domainData);
         if (typeof document !== 'undefined') {
-          document.title = `${getDomainTitle(domainSlug, domainData?.name)} | HADESCORE`;
+          document.title = `${getDomainTitle(domainSlug, authoritativeDomainName)} | HADESCORE`;
         }
 
-        const quizConfig = getStoredQuizConfig();
-        let targetQCount = quizConfig.questions_per_quiz || 10;
-        let targetTimerMinutes = quizConfig.quiz_timer_minutes || quizConfig.quiz_duration_minutes || 15;
-        try {
-          const latestConf = await fetchQuizConfig();
-          if (latestConf && latestConf.questions_per_quiz) {
-            targetQCount = latestConf.questions_per_quiz;
-          }
-          // Read timer from backend config (admin Settings page value)
-          if (latestConf && (latestConf.quiz_timer_minutes || latestConf.quiz_duration_minutes)) {
-            targetTimerMinutes = latestConf.quiz_timer_minutes || latestConf.quiz_duration_minutes || targetTimerMinutes;
-          }
-        } catch {}
+        // ── ULTRA FAST 10ms INSTANT HYDRATION ─────────────────────
+        // Fetch 30 questions synchronously in < 1ms so candidate never waits!
+        const immediateQuestions = getDomainQuestions(domainSlug, authoritativeDomainName, targetQCount);
+        if (immediateQuestions && immediateQuestions.length > 0) {
+          quiz.setQuestions(immediateQuestions.slice(0, targetQCount), true);
+          setLoading(false); // Instantly display questions within 10ms!
+        }
 
-        setTimeLeft(targetTimerMinutes * 60);
-
-        // Create attempt
         let newAttemptId = 'dev-attempt-' + Date.now();
-        let questions: Question[] = [];
-
-        if (isSupabaseConfigured) {
-          try {
-            const attempt = await startQuizAttempt(studentId, domainData.id, targetQCount);
-            newAttemptId = attempt.id;
-            if (attempt.questions && attempt.questions.length > 0) {
-              questions = attempt.questions;
-            }
-            try {
-              await trackLeadActivity(studentId, 'quiz_started', 0, { domain_id: domainData.id });
-            } catch {}
-          } catch (attErr: any) {
-            console.warn('[QuizPage] startQuizAttempt fallback notice:', attErr?.message || attErr);
-          }
-        }
-
-        // If this attempt was already submitted, redirect to result page immediately
-        if (typeof window !== 'undefined' && window.sessionStorage) {
-          if (sessionStorage.getItem(`quiz_submitted_${newAttemptId}`) === 'true') {
-            navigate(`/result/${newAttemptId}`, { replace: true });
-            return;
-          }
-        }
-
         setAttemptId(newAttemptId);
         if (typeof window !== 'undefined' && window.sessionStorage) {
-          sessionStorage.setItem(`quiz_domain_slug_${newAttemptId}`, domainSlug || domainData.slug);
-          sessionStorage.setItem(`quiz_domain_name_${newAttemptId}`, (location.state as any)?.customDomainName || domainData.name);
+          sessionStorage.setItem(`quiz_domain_slug_${newAttemptId}`, domainSlug);
+          sessionStorage.setItem(`quiz_domain_name_${newAttemptId}`, authoritativeDomainName);
         }
 
-        // 1. Try Gemini AI dynamic question generation with target question count
-        if (questions.length === 0) {
-          try {
-            const aiQuestions = await generateQuestionsWithGemini(domainData.name, targetQCount, 'intermediate');
-            if (aiQuestions && aiQuestions.length >= targetQCount) {
-              questions = aiQuestions.slice(0, targetQCount);
-            }
-          } catch (aiErr) {
-            console.warn('[QuizPage] Gemini AI generation note:', aiErr);
-          }
-        }
-
-        // 2. Load questions from Supabase if configured and not generated by AI
-        if (questions.length === 0) {
-          if (isSupabaseConfigured && !domainData.id.startsWith('dyn-') && !domainData.id.startsWith('dev-')) {
+        // ── Asynchronous Background Attempt Sync (non-blocking) ───
+        try {
+          let resolvedDomainId = domainData.id;
+          if (isSupabaseConfigured && !isUuid(domainData.id)) {
             try {
-              questions = await getQuestionsForQuiz(domainData.id, targetQCount);
-            } catch {
-              questions = [];
-            }
+              const fetchedD = await getDomainBySlug(domainSlug);
+              if (fetchedD?.id) resolvedDomainId = fetchedD.id;
+            } catch {}
           }
-        }
 
-        // 3. Ensure EXACT target question count across ALL domains
-        if (!questions || questions.length < targetQCount) {
-          const fallbackPool = getDomainQuestions(domainSlug, domainData.name, targetQCount);
-          if (!questions || questions.length === 0) {
-            questions = fallbackPool;
-          } else {
-            const existingIds = new Set(questions.map((q) => q.id));
-            for (const fq of fallbackPool) {
-              if (questions.length >= targetQCount) break;
-              if (!existingIds.has(fq.id)) {
-                questions.push(fq);
-                existingIds.add(fq.id);
-              }
+          const attempt = await startQuizAttempt(studentId, resolvedDomainId, targetQCount, authoritativeDomainName);
+          if (attempt && attempt.id) {
+            newAttemptId = attempt.id;
+            setAttemptId(newAttemptId);
+            if (typeof window !== 'undefined' && window.sessionStorage) {
+              sessionStorage.setItem(`quiz_domain_slug_${newAttemptId}`, domainSlug);
+              sessionStorage.setItem(`quiz_domain_name_${newAttemptId}`, authoritativeDomainName);
             }
+            try {
+              await trackLeadActivity(studentId, 'quiz_started', 0, { domain_id: resolvedDomainId });
+            } catch {}
           }
+        } catch (attErr: any) {
+          console.warn('[QuizPage] Background startQuizAttempt notice:', attErr?.message || attErr);
         }
 
-        // 4. Final safety net: If questions array is still short, strictly use THIS domain's questions
-        if (!questions || questions.length < targetQCount) {
-          const safetyPool = getDomainQuestions(domainSlug, domainData?.name || domainSlug, targetQCount);
-          if (!questions || questions.length === 0) {
-            questions = safetyPool;
-          } else {
-            const existingIds = new Set(questions.map((q) => q.id));
-            for (const sq of safetyPool) {
-              if (questions.length >= targetQCount) break;
-              if (!existingIds.has(sq.id)) {
-                questions.push(sq);
-                existingIds.add(sq.id);
-              }
-            }
-          }
-        }
-
-        // Ensure EXACT target question count
-        if (questions.length > targetQCount) {
-          questions = questions.slice(0, targetQCount);
-        }
-
-        quiz.setQuestions(questions);
         setError(null);
       } catch (err) {
-        console.warn('Quiz load encountered issue, applying local question bank:', err);
-        const cfg = getStoredQuizConfig();
-        const fallbackTarget = cfg.questions_per_quiz || 10;
-        const fallbackQs = getDomainQuestions(domainSlug || 'python', domainSlug, fallbackTarget);
+        console.error('[QuizPage] Quiz load encountered issue:', err);
+        const locState = location.state as any;
+        const domName =
+          locState?.customDomainName ||
+          locState?.domainName ||
+          (typeof window !== 'undefined' && window.sessionStorage
+            ? sessionStorage.getItem('active_assessment_domain_name')
+            : null) ||
+          domainSlug;
+        const fallbackQs = domainSlug ? getDomainQuestions(domainSlug, domName, 30) : [];
         if (fallbackQs && fallbackQs.length > 0) {
-          quiz.setQuestions(fallbackQs.slice(0, fallbackTarget));
+          quiz.setQuestions(fallbackQs.slice(0, 30), true);
           setError(null);
         } else {
-          setError(err instanceof Error ? err.message : 'Failed to load quiz');
+          setError(err instanceof Error ? err.message : 'Failed to load assessment questions. Please try again.');
         }
       } finally {
         setLoading(false);
@@ -651,7 +591,7 @@ export default function QuizPage() {
         <div className="text-center">
           <Loader2 className="w-10 h-10 animate-spin text-brand-600 mx-auto mb-4" />
           <p className="text-gray-600 font-medium">Preparing your assessment...</p>
-          <p className="text-xs text-gray-400 mt-1">Adaptive AI & Curated Skill Assessment</p>
+          <p className="text-xs text-gray-400 mt-1">Skill Assessment</p>
         </div>
       </div>
     );

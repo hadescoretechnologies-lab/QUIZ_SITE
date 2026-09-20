@@ -12,9 +12,9 @@ export interface QuizState {
 
 export function useQuiz(attemptId: string, domainSlug: string, studentId: string) {
   const [state, setState] = useState<QuizState>(() => {
-    // Restore from localStorage if same attempt
+    // Restore from localStorage only if same attempt AND same domain
     const saved = getPersistedQuizState();
-    if (saved && saved.attemptId === attemptId) {
+    if (saved && saved.attemptId === attemptId && saved.domainSlug === domainSlug) {
       return {
         questions: [],
         answers: (saved.answers as Record<string, string | null>) || {},
@@ -32,8 +32,18 @@ export function useQuiz(attemptId: string, domainSlug: string, studentId: string
     };
   });
 
-  const setQuestions = useCallback((questions: Question[]) => {
-    setState((prev) => ({ ...prev, questions }));
+  const setQuestions = useCallback((questions: Question[], resetState = false) => {
+    setState((prev) => {
+      if (resetState || questions.length === 0) {
+        return {
+          ...prev,
+          questions,
+          answers: {},
+          currentIndex: 0,
+        };
+      }
+      return { ...prev, questions };
+    });
   }, []);
 
   const selectAnswer = useCallback(

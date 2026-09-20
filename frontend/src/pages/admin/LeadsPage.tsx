@@ -651,8 +651,11 @@ export default function AdminLeadsPage() {
                         {(() => {
                           const domainInfo = getStudentDomainDisplay(student);
                           return (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200/60 text-[10px] font-bold truncate max-w-[130px]">
-                              <span>{domainInfo.icon}</span>
+                            <span
+                              title={domainInfo.name}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200/70 text-xs font-semibold max-w-[200px]"
+                            >
+                              <span className="shrink-0">{domainInfo.icon}</span>
                               <span className="truncate">{domainInfo.name}</span>
                             </span>
                           );

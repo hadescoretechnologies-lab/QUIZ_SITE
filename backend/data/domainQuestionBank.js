@@ -2,6 +2,2539 @@
 // Domain-based questions with strictly 4 options (A, B, C, D) per question, question shuffling, option shuffling, and dynamic domain generation.
 
 const DOMAIN_QUESTIONS = {
+  "film-production": [
+  {
+    "q": "In cinematography, what fundamental rule governs camera shutter speed relative to frame rate (e.g., shooting at 24 fps with a 1/48s shutter) to achieve natural motion blur resembling human visual perception?",
+    "opts": [
+      "The 180-Degree Shutter Rule",
+      "The Rule of Thirds camera grid",
+      "The Inverse-Square Law of lighting decay",
+      "The Rec. 709 dynamic range compression ratio"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In classic motion picture lighting setups, what is the primary purpose of the \"Key Light\" in three-point lighting?",
+    "opts": [
+      "To establish the primary illumination, directionality, and mood on the subject’s face and figure",
+      "To soften deep shadows cast by the sun without altering exposure",
+      "To separate the subject from the dark background with an edge rim glow",
+      "To evenly illuminate the greenscreen backdrop to prevent color spill"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In cinematic editing and camera placement, what spatial guideline states that cameras must remain on one side of an imaginary line between two characters to preserve screen direction and eyelines?",
+    "opts": [
+      "The 180-Degree Spatial Axis Rule",
+      "The 30-Degree Cut Angle Rule",
+      "The Jump Cut Discontinuity Protocol",
+      "The Kuleshov Effect sequencing rule"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "Which optical lens characteristic determines the depth of field and background bokeh blur at a given focal length and camera-to-subject distance?",
+    "opts": [
+      "Lens aperture (f-stop / T-stop setting)",
+      "Front filter thread diameter (e.g., 82mm)",
+      "Lens mount flange focal depth distance",
+      "Zoom barrel rotation torque resistance"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In professional digital cinema cameras (like ARRI Alexa or RED), what is the primary advantage of recording in a \"Log\" gamma profile (e.g., LogC, S-Log3, RED Log3G10)?",
+    "opts": [
+      "Preserves maximum dynamic range in highlights and shadow details for flexible color grading in post-production",
+      "Permanently burns a finalized color look directly into video files to save render time",
+      "Doubles the audio sample rate recorded on internal microphones",
+      "Automatically stabilizes handheld camera camera shake without optical gimbal"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In location sound recording, what microphone polar pattern provides tight directional pickup along the front axis while rejecting ambient sounds from the sides and rear, ideal for boom pole operation?",
+    "opts": [
+      "Supercardioid / Hypercardioid (Shotgun pattern with interference tube)",
+      "Omnidirectional boundary pattern",
+      "Figure-8 bidirectional ribbon pattern",
+      "Cardioid wide-angle cardioid lavalier"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In film post-production sound design, what is the custom recording of synchronized human footsteps, cloth rustles, and prop interactions to replace production audio called?",
+    "opts": [
+      "Foley Recording",
+      "Automated Dialogue Replacement (ADR / Looping)",
+      "Diegetic orchestral score scoring",
+      "Room tone baseline ambiance recording"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What visual narrative device is created by cutting from one scene to another where the two consecutive shots share identical geometric compositions, motion directions, or shapes?",
+    "opts": [
+      "Match Cut (Graphic or Action match cut)",
+      "Smash cut on audio peak",
+      "L-Cut / J-Cut split audio transition",
+      "Wipe transition with alpha mask"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "On a professional film set, which department head is responsible for rigging lighting instruments, camera cranes, dollies, flags, and physical camera support equipment?",
+    "opts": [
+      "Key Grip",
+      "Gaffer (Chief Lighting Technician)",
+      "First Assistant Director (1st AD)",
+      "Production Sound Mixer"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In digital color grading and mastering, what is a 3D LUT (Look-Up Table) primarily used for?",
+    "opts": [
+      "Mapping input color values (RGB) from a camera Log space to a standardized display color space (such as Rec.709) with a specific creative palette",
+      "Automatically removing microphone hum and background air conditioning noise",
+      "Re-timing the speed of slow-motion clips from 120 fps to 24 fps",
+      "Generating digital visual effects particle simulations"
+    ],
+    "ans": 0
+  }
+],
+
+  "interior-design": [
+  {
+    "q": "In architectural interior design, what metric defines the human body measurement standards used to ensure appropriate countertop heights, door clearances, and chair seat ergonomics?",
+    "opts": [
+      "Anthropometrics",
+      "Biomechanics of sports kinetics",
+      "Acoustical reverberation metrics",
+      "Photometric beam dispersion angles"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In commercial building codes (IBC & NFPA 101 Life Safety Code), what is the minimum standard clear width requirement for an accessible interior means of egress corridor serving more than 50 occupants?",
+    "opts": [
+      "44 inches (1118 mm)",
+      "32 inches (813 mm)",
+      "24 inches (610 mm)",
+      "60 inches (1524 mm)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In lighting design for corporate interior offices, what Correlated Color Temperature (CCT) range is recommended for promoting alertness and visual acuity in task workspaces?",
+    "opts": [
+      "3500K to 4500K (Neutral to Cool White)",
+      "2200K to 2700K (Warm candlelight glow)",
+      "6500K to 7500K (Daylight blue exterior sky)",
+      "1800K to 2000K (Sodium vapor amber)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What acoustical performance rating measures the percentage of airborne sound absorbed by an interior ceiling tile or wall acoustic panel (ranging from 0.00 to 1.00)?",
+    "opts": [
+      "Noise Reduction Coefficient (NRC)",
+      "Sound Transmission Class (STC)",
+      "Impact Insulation Class (IIC)",
+      "Ceiling Attenuation Class (CAC)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In interior commercial flooring specification, what test metric measures the slip resistance of ceramic tiles under wet conditions to prevent occupant falls (ANSI A326.3)?",
+    "opts": [
+      "Dynamic Coefficient of Friction (DCOF, minimum standard >= 0.42 for level wet floors)",
+      "Mohs Hardness Scratch Scale rating",
+      "Static indentation residual deformation rating",
+      "Taber Abrasion wear cycle count"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In residential interior kitchen design, what classic planning principle minimizes walking distances between the sink, cooktop/range, and refrigerator?",
+    "opts": [
+      "The Kitchen Work Triangle (total perimeter between 13 and 26 feet)",
+      "The Linear Galley Corridor layout",
+      "The Golden Ratio Sectional distribution",
+      "The Feng Shui Bagua map orientation"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What flame spread classification under ASTM E84 / NFPA 255 is mandatory for interior wall and ceiling finish materials in high-risk commercial egress corridors (Flame Spread Index 0-25)?",
+    "opts": [
+      "Class A (Class I)",
+      "Class B (Class II)",
+      "Class C (Class III)",
+      "Class D (Unregulated combustible finish)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What design framework ensures interior built environments are usable by all people to the greatest extent possible, regardless of age, disability, or mobility limitations?",
+    "opts": [
+      "Universal Design (Principles of Accessibility and ADA Standards)",
+      "Minimalist Industrial Aestheticism",
+      "Brutalist Monolithic Architecture",
+      "Historical Art Deco Preservation"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In interior millwork and custom cabinetry, which composite wood substrate provides the smoothest, most uniform surface for high-gloss lacquer and painted cabinetry finishes?",
+    "opts": [
+      "Medium Density Fiberboard (MDF)",
+      "Oriented Strand Board (OSB)",
+      "Rotary-cut spruce construction plywood",
+      "Rough sawn dimensional Douglas fir lumber"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In sustainable interior finishes, what indoor environmental quality certification verifies that paints, sealants, and furnishings emit ultra-low or zero volatile organic compounds (VOCs)?",
+    "opts": [
+      "GREENGUARD Gold Certification or Cradle to Cradle",
+      "Energy Star Appliance rating",
+      "WaterSense plumbing certification",
+      "FSC Chain of Custody for lumber harvesting"
+    ],
+    "ans": 0
+  }
+],
+
+  "game-development": [
+  {
+    "q": "In game engine architecture, what is the primary benefit of decoupling the game physics update (fixed delta time) from the rendering frame rate (variable delta time)?",
+    "opts": [
+      "Ensures deterministic, stable physics simulations and collision resolution regardless of visual rendering lag or variable monitor refresh rates",
+      "Eliminates all CPU memory usage during GPU shader execution",
+      "Guarantees that multiplayer netcode will never encounter packet loss",
+      "Automatically compresses high-resolution 3D textures into MIP maps"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "Which computational geometry algorithm is standardly used in 3D game engines for narrow-phase convex collision detection between arbitrary convex polyhedra?",
+    "opts": [
+      "GJK (Gilbert-Johnson-Keerthi) Algorithm and Separating Axis Theorem (SAT)",
+      "Dijkstra shortest path algorithm",
+      "Bresenham line drawing algorithm",
+      "Graham scan convex hull algorithm"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In 3D graphics rendering pipelines, what optimization technique discards objects or polygons that are outside the camera’s view volume before rasterization?",
+    "opts": [
+      "Frustum Culling",
+      "Back-face culling on counter-clockwise triangles",
+      "Occlusion queries on depth buffer z-tests",
+      "Anisotropic texture filtering"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In game AI design, what hierarchical decision architecture uses Selector, Sequence, and Decorator nodes to dynamically evaluate NPC actions and behaviors?",
+    "opts": [
+      "Behavior Trees (BT)",
+      "Finite State Machines (FSM) without hierarchy",
+      "Minimax search with alpha-beta pruning",
+      "Neural network weight quantization"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What rendering shader stage executes on individual vertices to transform 3D object-space coordinates into clip space using model-view-projection (MVP) matrices?",
+    "opts": [
+      "Vertex Shader",
+      "Fragment (Pixel) Shader",
+      "Tessellation Evaluation Shader",
+      "Compute Shader for compute dispatch"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In competitive multiplayer games, what client-side networking technique hides network latency by immediately simulating local player inputs before receiving server confirmation?",
+    "opts": [
+      "Client-Side Prediction with Server Reconciliation",
+      "Lockstep peer-to-peer synchronization",
+      "TCP packet retransmission wait loops",
+      "Complete client authority with zero server validation"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What spatial partitioning data structure recursively divides 3D game world space into eight octants to accelerate collision queries, raycasting, and visibility checks?",
+    "opts": [
+      "Octree",
+      "Binary Search Tree (BST)",
+      "Quadtree (2D planar only)",
+      "Hash Ring with consistent hashing"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What 3D asset optimization technique substitutes high-polygon 3D meshes with lower-polygon models as the camera moves further away from the object?",
+    "opts": [
+      "Level of Detail (LOD) Meshing",
+      "Ray-marched signed distance fields",
+      "Subdivision surface displacement mapping",
+      "Morph target blend shape interpolation"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In skeletal animation, what skinning method calculates the deformed position of a vertex by computing a weighted average of transformation matrices from multiple influencing bones?",
+    "opts": [
+      "Linear Blend Skinning (LBS) or Dual Quaternion Skinning (DQS)",
+      "Forward kinematic chain rotation without weighting",
+      "Rigid parent attachment to a single root bone",
+      "Vertex texture fetch displacement without bones"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What visual artifact in real-time rendering occurs when a camera moves faster than the monitor’s refresh cycle, resulting in parts of multiple frames appearing simultaneously on screen?",
+    "opts": [
+      "Screen Tearing (mitigated by V-Sync, G-Sync, or FreeSync)",
+      "Z-fighting due to low depth buffer precision",
+      "Aliasing stair-stepping on diagonal geometric edges",
+      "Motion blur shutter ghosting"
+    ],
+    "ans": 0
+  }
+],
+
+  "fashion-design": [
+  {
+    "q": "In apparel pattern making, what technique involves moving a bodice dart to a new location (e.g., from waist to armhole or shoulder) while maintaining the original fit and garment silhouette?",
+    "opts": [
+      "Dart manipulation (pivoting or slash-and-spread method)",
+      "Pattern grading across dimensional size ranges",
+      "Bias grainline stretching along crosswise grain",
+      "French seam encasing on raw curved edges"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What is the primary aesthetic and structural difference between garments cut on the \"true bias\" (45-degree angle to warp and weft) versus the straight grain?",
+    "opts": [
+      "Bias cut garments fluidly drape and contour to body curves with natural elasticity and stretch without requiring Lycra",
+      "Bias cut garments are rigid, stiff, and prevent any dimensional elongation",
+      "Bias cut fabrics require zero seam allowance and cannot fray along raw edges",
+      "Bias grain garments have identical tensile strength in horizontal and vertical axes"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In haute couture dressmaking, what hand-sewing technique cleanly encases raw fabric edges inside a narrow double fold, ideal for sheer fabrics like chiffon and organza?",
+    "opts": [
+      "French seam",
+      "Flat-felled seam",
+      "Overlock 4-thread serger seam",
+      "Bound Hong Kong finish with synthetic webbing"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In the color theory of fashion and styling, what term describes the relative purity, intensity, or saturation of a color compared to pure gray?",
+    "opts": [
+      "Chroma (saturation)",
+      "Hue designation",
+      "Value (lightness or darkness)",
+      "Color temperature (warm versus cool undertone)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "Which natural protein fiber obtained from the fleece of sheep possesses natural crimp, moisture-wicking properties, and thermal insulation capabilities?",
+    "opts": [
+      "Wool (Keratin fiber)",
+      "Cotton (Cellulose staple fiber)",
+      "Linen (Bast fiber from flax plant)",
+      "Silk (Fibroin continuous filament)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In technical garment design, what document provides manufacturers with complete construction details, bill of materials (BOM), measurement grade rules, and stitch specifications?",
+    "opts": [
+      "Tech Pack (Technical Specification Sheet)",
+      "Fashion mood board collage",
+      "Trend forecasting palette book",
+      "Runway lookbook portfolio"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What manufacturing method is used to create proportional increments and decrements to a base sample pattern (usually Size M or 8) to create a full size run (XS to XXL)?",
+    "opts": [
+      "Pattern Grading",
+      "Draping on dress form",
+      "Marker planning and fabric spreading",
+      "Toile fitting and muslin prototyping"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What fashion design silhouette is characterized by a closely fitted bodice that dramatically flares outward from the natural waistline like an inverted letter A?",
+    "opts": [
+      "A-line silhouette (popularized by Christian Dior in 1955)",
+      "Empire waist silhouette with high seam under the bust",
+      "Sheath column silhouette with straight vertical lines",
+      "Drop-waist flapper silhouette resting on low hips"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "Which sustainable fashion principle focuses on designing garments with recyclable mono-materials, zero waste patterns, and extended circular product lifecycles?",
+    "opts": [
+      "Circular Fashion & Closed-Loop Lifecycle Design",
+      "Fast fashion rapid inventory obsolescence",
+      "Petroleum-based synthetic microplastic weaving",
+      "Single-season trend overproduction"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In woven fabric structure, what are the lengthwise vertical yarns held under tension on the weaving loom called?",
+    "opts": [
+      "Warp yarns (ends)",
+      "Weft yarns (picks or filling)",
+      "Selvedge edge binding threads",
+      "Bias diagonal filament yarns"
+    ],
+    "ans": 0
+  }
+],
+
+  "robotics-engineering": [
+  {
+    "q": "In serial robotic arm kinematics, which standard mathematical convention uses four geometric parameters (link length, link twist, link offset, joint angle) to attach coordinate frames to adjacent links?",
+    "opts": [
+      "Denavit-Hartenberg (DH) Convention",
+      "Euler-Lagrange Coordinate Mapping",
+      "Rodrigues Rotation Formula",
+      "Quaternionic Plücker Transformation"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What occurs mathematically at a kinematic singularity in a 6-DOF industrial articulated robot manipulator?",
+    "opts": [
+      "The manipulator Jacobian matrix loses full rank (determinant equals zero), causing loss of one or more degrees of mobility",
+      "The joint motors automatically trip their thermal overload relays",
+      "The end-effector payload acceleration drops instantaneously to zero",
+      "The inverse kinematics problem yields exactly one unique closed-form solution"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "Which sampling-based motion planning algorithm is guaranteed to converge to an optimal collision-free path as the number of samples approaches infinity?",
+    "opts": [
+      "RRT* (Optimal Rapidly-exploring Random Trees)",
+      "Standard RRT without tree rewiring",
+      "Potential Field Method with local minimum attraction",
+      "Dijkstra algorithm on an unweighted grid"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In mobile robot navigation, what does the acronym SLAM stand for?",
+    "opts": [
+      "Simultaneous Localization and Mapping",
+      "Synchronous Linear Actuator Measurement",
+      "Spatial Lidar Alignment Matrix",
+      "Sensor Level Actuation Modeling"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What type of robotic gear reducer offers zero-backlash, high gear reduction ratios (up to 160:1) in a compact coaxial design, widely used in collaborative robot joints?",
+    "opts": [
+      "Harmonic drive (strain wave gearing)",
+      "Single-stage spur gear pair",
+      "Worm gear with lead angle backlash",
+      "Open bevel gear differential assembly"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In feedback control of robotic joints, what does the Derivative (D) gain in a PID controller primarily contribute to system dynamics?",
+    "opts": [
+      "Provides anticipatory damping to reduce overshoot and oscillations in trajectory tracking",
+      "Eliminates steady-state position error caused by gravitational torque",
+      "Amplifies high-frequency encoder noise to increase joint stiffness",
+      "Limits peak motor drive current during stall conditions"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In the Robot Operating System (ROS 2), what communication paradigm is used for request-response transactions that execute asynchronously and report continuous feedback progress?",
+    "opts": [
+      "ROS 2 Actions (Goal, Feedback, Result)",
+      "ROS 2 Topics (Publisher-Subscriber stream only)",
+      "ROS 2 Services (blocking two-way request without feedback)",
+      "ROS 2 Parameter client primitives"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What sensor fusion algorithm is standardly used in autonomous robots to combine high-frequency IMU accelerometer/gyroscope readings with wheel odometry and LiDAR pose estimates?",
+    "opts": [
+      "Extended Kalman Filter (EKF) or Unscented Kalman Filter (UKF)",
+      "Fast Fourier Transform (FFT) peak detector",
+      "Simple moving average filter with fixed rectangular window",
+      "K-means clustering classifier"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What control methodology allows an industrial robot to safely interact with a stiff environment by simulating a virtual spring-damper relationship between contact force and end-effector position?",
+    "opts": [
+      "Impedance / Admittance control",
+      "Pure position control with high proportional gain",
+      "Open-loop voltage feedforward control",
+      "Bang-bang contact switching control"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "Which representation of 3D spatial rotation avoids the mathematical singularity known as \"gimbal lock\" in robotic orientation modeling?",
+    "opts": [
+      "Unit Quaternions (Euler parameters)",
+      "Roll-Pitch-Yaw (RPY) Euler angles",
+      "Direction cosine matrix with Euler ZYZ angles",
+      "Axis-angle representation with zero modulus"
+    ],
+    "ans": 0
+  }
+],
+
+  "petroleum-engineering": [
+  {
+    "q": "In reservoir engineering, which fundamental empirical relationship governs the flow of a single-phase fluid through a porous rock medium?",
+    "opts": [
+      "Darcy's Law",
+      "Fick's Second Law",
+      "Navier-Stokes Equation for viscous free flow",
+      "Bernoulli's Conservation Equation"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What primary reservoir drive mechanism typically yields the highest ultimate oil recovery percentage (35% to 75%) without artificial stimulation?",
+    "opts": [
+      "Active bottom or edge water drive",
+      "Solution gas drive (depletion drive)",
+      "Gas cap expansion drive",
+      "Rock and fluid expansion (compaction drive)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In well drilling operations, what critical property of bentonite-based drilling mud enables it to suspend drilled rock cuttings when circulation stops?",
+    "opts": [
+      "Thixotropy and gel strength formation at rest",
+      "Low specific gravity and high thermal conductivity",
+      "Zero plastic viscosity and Newtonian behavior",
+      "Negative hydrostatic pressure gradient"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What well control equipment is installed at the wellhead to shear the drill pipe and completely seal the wellbore during an uncontrolled kick blowout?",
+    "opts": [
+      "Blind shear rams on the Blowout Preventer (BOP) stack",
+      "Annular blowout preventer rubber packing element",
+      "Choke manifold adjustable needle orifice valve",
+      "Rotary kelly bushing locking slips"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In petroleum well logging, what does a spontaneous potential (SP) log curve deflection primarily differentiate in permeable formations?",
+    "opts": [
+      "Permeable sandstone/limestone beds from impermeable shales",
+      "Hydrocarbon density from formation water resistivity",
+      "Borehole caliper diameter changes across washouts",
+      "Natural formation radioactivity from thorium and potassium"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What dimensionless number or metric is used by the American Petroleum Institute to measure how heavy or light a petroleum liquid is compared to water?",
+    "opts": [
+      "API Gravity (degrees API)",
+      "Specific Surface Retention Index",
+      "Flash Point Boiling Index",
+      "Cetane Number Rating"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In hydraulic fracturing stimulation, what is the primary mechanical function of ceramic or sand proppant?",
+    "opts": [
+      "To hold induced hydraulic fractures open after injection pressure is released, preserving high conductive permeability",
+      "To dissolve tight shale rock matrix using exothermic acid reactions",
+      "To seal off natural fault lines preventing hydrocarbon migration into the wellbore",
+      "To cool bottom-hole temperatures during high-rate slickwater pumping"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "Which Enhanced Oil Recovery (EOR) technique involves injecting surfactants and polymers to reduce interfacial tension and increase sweep efficiency?",
+    "opts": [
+      "Chemical EOR (Surfactant-Polymer flooding)",
+      "Thermal cyclic steam stimulation (Huff and Puff)",
+      "Miscible carbon dioxide (CO2) huff-and-puff",
+      "In-situ combustion (fire flooding)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In artificial lift design, which system utilizes downhole multi-stage centrifugal impellers driven by an electric motor connected to a surface power cable?",
+    "opts": [
+      "Electrical Submersible Pump (ESP)",
+      "Sucker rod beam pumping unit (Pumpjack)",
+      "Continuous gas lift injection through mandrel valves",
+      "Hydraulic jet venturi pump"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What is the bubble point pressure (Pb) of a crude oil reservoir fluid at a given reservoir temperature?",
+    "opts": [
+      "The pressure at which the first infinitesimal bubble of gas comes out of solution from the liquid oil phase",
+      "The pressure at which all liquid oil vaporizes completely into dry gas",
+      "The hydrostatic pressure exerted by a column of freshwater at reservoir depth",
+      "The fracture breakdown pressure of the caprock overlying the reservoir"
+    ],
+    "ans": 0
+  }
+],
+
+  "marine-engineering": [
+  {
+    "q": "In marine diesel propulsion engines, what is the primary thermodynamic cause of turbocharger surging during rapid engine load fluctuations?",
+    "opts": [
+      "Flow separation on compressor impeller blades when mass flow rate drops below the critical surge limit at high pressure ratio",
+      "Excessive scavenging air cooling causing condensation in the cylinder liner",
+      "Delayed fuel injection timing causing afterburning in the exhaust manifold",
+      "Over-lubrication of the crosshead bearing assembly"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "Which international maritime regulation governs the standards for prevention of air pollution from ships, including NOx Tier III and SOx emissions?",
+    "opts": [
+      "MARPOL Annex VI",
+      "SOLAS Chapter II-2",
+      "STCW Convention Section A-III",
+      "MARPOL Annex I"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In naval architecture, what does the metacentric height (GM) measure directly regarding a vessel’s seaworthiness?",
+    "opts": [
+      "Initial static transverse stability at small angles of heel",
+      "Total longitudinal bending moment in hogging condition",
+      "Dynamic resistance of the bulbous bow in open seaway",
+      "Propeller pitch ratio efficiency at design speed"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What dangerous phenomenon occurs when local static pressure on a marine propeller blade drops below the saturated vapor pressure of seawater?",
+    "opts": [
+      "Cavitation, causing blade surface erosion, vibration, and loss of thrust",
+      "Galvanic corrosion between bronze propeller and steel hull",
+      "Thermal blooming of the stern tube bearing white metal",
+      "Hydrodynamic squat in shallow water fairways"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In ship auxiliary systems, what is the regulatory maximum oil content permitted in bilge water discharged overboard through an Oily Water Separator (OWS)?",
+    "opts": [
+      "15 parts per million (ppm)",
+      "50 parts per million (ppm)",
+      "100 parts per million (ppm)",
+      "5 parts per million (ppm)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What type of steering gear system utilizes hydraulic rams controlled by telemotor signals to turn the rudder stock?",
+    "opts": [
+      "Electro-hydraulic ram type steering gear with hunting gear feedback",
+      "Mechanical rack-and-pinion cable steering",
+      "Pneumatic vane actuator with open-loop solenoid control",
+      "Direct electric chain drive steering"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "How does an impressed current cathodic protection (ICCP) system prevent galvanic hull corrosion in ocean-going vessels?",
+    "opts": [
+      "By supplying a controlled direct electrical current from auxiliary power to inert anodes mounted on the hull",
+      "By coating the hull exclusively with sacrificial zinc blocks along the keel",
+      "By circulating hot freshwater through the sea chest strainers",
+      "By grounding the ship electrical system to the propeller shaft slip rings"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In marine boiler water chemistry, what is the primary risk of high chloride contamination in feed water?",
+    "opts": [
+      "Severe pitting corrosion and stress corrosion cracking of boiler tubes",
+      "Excessive alkalinity causing caustic gouging of soot blowers",
+      "Formation of non-conductive magnetite protective films",
+      "Thermal shock to the superheater steam headers"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What is the purpose of the emergency generator on commercial merchant vessels under SOLAS Chapter II-1?",
+    "opts": [
+      "To supply essential power to navigation aids, emergency lighting, steering gear, and fire pumps within 45 seconds of blackout",
+      "To assist main engine propulsion during heavy sea state maneuvers",
+      "To charge ship battery banks during normal harbour dry-dock operations",
+      "To power the galley and crew accommodation air conditioning systems during sea trials"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In marine shafting systems, what device prevents seawater from entering the engine room along the rotating propeller shaft?",
+    "opts": [
+      "Stern tube seal assembly (lip seals with oil barrier pressure)",
+      "Centrifugal sea water ballast valve",
+      "Intermediate thrust block bearing casing",
+      "Coupling flange alignment shim"
+    ],
+    "ans": 0
+  }
+],
+
+  "chemical-engineering": [
+    {
+      "q": "In a continuous distillation column operating at steady state, what does a reflux ratio of infinity correspond to in the McCabe-Thiele analysis?",
+      "opts": [
+        "Total reflux operation yielding the minimum number of theoretical stages with zero net product withdrawal",
+        "Minimum reflux operation requiring an infinite number of theoretical stages",
+        "Flooding of the distillation column due to excessive vapor velocity",
+        "Complete weeping through the sieve trays into the reboiler"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "For an ideal binary solution undergoing vapor-liquid equilibrium (VLE), which fundamental thermodynamic law states that the partial vapor pressure of each component is equal to the product of its mole fraction in the liquid phase and its pure component saturation vapor pressure?",
+      "opts": [
+        "Raoult's Law",
+        "Henry's Law",
+        "Amagat's Law of Partial Volumes",
+        "Dalton's Law of Additive Pressures"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "In chemical reaction engineering, which ideal reactor model is characterized by uniform concentration, temperature, and reaction rate throughout the entire reaction volume at steady state?",
+      "opts": [
+        "Continuous Stirred Tank Reactor (CSTR)",
+        "Plug Flow Reactor (PFR)",
+        "Differential Packed Bed Reactor",
+        "Semi-batch Gas-Liquid Sparged Column"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "In heat transfer operations, what temperature difference metric accounts for the non-linear temperature profiles of hot and cold fluids along a counter-current heat exchanger?",
+      "opts": [
+        "Logarithmic Mean Temperature Difference (LMTD)",
+        "Arithmetic Mean Temperature Difference (AMTD)",
+        "Geometric Mean Temperature Ratio (GMTR)",
+        "Harmonic Mean Heat Flux Difference"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "What dimensionless number represents the ratio of convective mass transfer to molecular mass diffusivity in boundary layer mass transfer?",
+      "opts": [
+        "Sherwood Number (Sh)",
+        "Schmidt Number (Sc)",
+        "Prandtl Number (Pr)",
+        "Nusselt Number (Nu)"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "What dimensionless number represents the ratio of momentum diffusivity (kinematic viscosity) to molecular mass diffusivity in chemical fluid transport?",
+      "opts": [
+        "Schmidt Number (Sc)",
+        "Lewis Number (Le)",
+        "Biot Number (Bi)",
+        "Peclet Number (Pe)"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "In chemical process safety and hazard analysis, what structured, systematic team-based methodology uses guide words (such as NO, MORE, LESS, AS WELL AS) to identify process deviation risks?",
+      "opts": [
+        "Hazard and Operability Study (HAZOP)",
+        "Failure Mode and Effects Analysis (FMEA)",
+        "Fault Tree Analysis (FTA)",
+        "Layer of Protection Analysis (LOPA)"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "What is the primary thermodynamic criterion for phase and chemical reaction equilibrium at constant temperature and pressure?",
+      "opts": [
+        "The total Gibbs free energy of the system reaches a minimum (dG = 0)",
+        "The total enthalpy of the system reaches zero (dH = 0)",
+        "The system entropy decreases to zero",
+        "The Helmholtz free energy becomes positive infinite"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "In fluid mechanics applied to packed bed reactors and filtration units, which classic equation describes the pressure drop of fluid flowing through a porous packed bed over both laminar and turbulent regimes?",
+      "opts": [
+        "Ergun Equation",
+        "Hagen-Poiseuille Equation",
+        "Colebrook-White Formula",
+        "Darcy-Weisbach Equation for Smooth Pipes"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "In centrifugal pump operation within a chemical plant, what condition occurs when local static fluid pressure drops below the liquid's vapor pressure, causing vapor bubbles that collapse violently and erode the impeller?",
+      "opts": [
+        "Cavitation",
+        "Hydraulic Hammer",
+        "Channeling",
+        "Boundary Layer Separation"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "In gas absorption and stripping columns, what condition occurs when upward vapor velocity prevents downward liquid flow, causing liquid to accumulate and flood the column trays or packing?",
+      "opts": [
+        "Flooding",
+        "Weeping",
+        "Entrainment",
+        "Coning"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "In heterogeneous catalysis, which dimensionless parameter compares the characteristic reaction rate inside a porous catalyst pellet to the internal pore diffusion rate?",
+      "opts": [
+        "Thiele Modulus",
+        "Damkohler Number",
+        "Weisz-Prater Criterion",
+        "Hatta Number"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "For an isothermal irreversible first-order liquid-phase reaction, which statement correctly compares the required reactor volumes of a single CSTR versus a single PFR to achieve the same fractional conversion X?",
+      "opts": [
+        "The CSTR requires a larger reactor volume than the PFR because the CSTR operates entirely at the lowest exit concentration",
+        "The PFR requires a larger reactor volume than the CSTR due to plug velocity profiles",
+        "Both reactors require the exact same volume regardless of reaction order",
+        "The CSTR requires a smaller volume because of continuous mechanical agitation"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "In chemical process dynamics, which feedback control mode provides corrective action proportional to the rate of change of the controlled process error, adding anticipatory phase lead to stabilize sluggish loops?",
+      "opts": [
+        "Derivative (D) Action",
+        "Integral (I) Action",
+        "Proportional (P) Offset",
+        "Inverse Response Feedforward"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "What classic graphical construction method uses a McCabe-Thiele diagram on an x-y equilibrium curve to step off the number of theoretical equilibrium stages for binary distillation?",
+      "opts": [
+        "Stepping between the equilibrium curve, operating lines (rectifying and stripping), and the feed (q) line",
+        "Integrating the Fenske-Underwood-Gilliland shortcut equations graphically",
+        "Constructing tie-lines on a ternary equilateral Gibbs triangle",
+        "Plotting temperature versus log vapor pressure for pure components"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "In non-ideal solution thermodynamics, what property is defined as the ratio of a component's fugacity in solution to its mole fraction times its standard-state fugacity?",
+      "opts": [
+        "Activity Coefficient (γ)",
+        "Compressibility Factor (Z)",
+        "Poynting Correction Factor",
+        "Acentric Factor (ω)"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "Which transport law states that molar diffusion flux is directly proportional to the negative concentration gradient under steady-state molecular diffusion?",
+      "opts": [
+        "Fick's First Law of Diffusion",
+        "Fourier's Law of Thermal Conduction",
+        "Newton's Law of Fluid Viscosity",
+        "Ohm's Law of Charge Transport"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "In shell-and-tube heat exchanger design, what components are installed inside the shell to support tube bundles and force cross-flow turbulence to increase shell-side heat transfer coefficients?",
+      "opts": [
+        "Segmental Baffles",
+        "Tie Rods and Spacers",
+        "Impingement Plates",
+        "Floating Head Covers"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "What is the primary thermodynamic effect observed when an ideal gas undergoes a throttling process through a porous plug or partially open adiabatic valve (isenthalpic expansion)?",
+      "opts": [
+        "The temperature remains completely unchanged because the Joule-Thomson coefficient of an ideal gas is identically zero",
+        "The temperature always drops dramatically due to PV expansion work",
+        "The gas condenses completely into saturated liquid",
+        "The temperature increases directly proportional to pressure drop"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "In chemical reaction kinetics, what equation models the exponential temperature dependency of reaction rate constants k = A · exp(-Ea / RT)?",
+      "opts": [
+        "Arrhenius Equation",
+        "Michaelis-Menten Equation",
+        "Van 't Hoff Isochore",
+        "Eyring Transition State Equation"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "In multi-component chemical process flowsheeting, what is the purpose of introducing a purge stream from a recycle loop?",
+      "opts": [
+        "To prevent the continuous accumulation and build-up of inert or non-reacting impurities in the recycle loop",
+        "To boost the total per-pass conversion of the primary reactants",
+        "To cool down the reactor effluent without requiring an external heat exchanger",
+        "To maintain turbulent Reynolds numbers inside the recycle compressor"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "In liquid-liquid extraction processes, what parameter describes the ratio of the solute's weight fraction in the extract phase to its weight fraction in the raffinate phase at equilibrium?",
+      "opts": [
+        "Distribution Coefficient (Partition Ratio)",
+        "Selectivity Index",
+        "Relative Volatility",
+        "Hatta Number"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "What term describes the minimum suction pressure required at the suction flange of a centrifugal pump to prevent vapor formation and cavitation?",
+      "opts": [
+        "Net Positive Suction Head Required (NPSHR)",
+        "Total Dynamic Head (TDH)",
+        "Specific Speed Head (SSH)",
+        "Static Suction Lift (SSL)"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "In chemical process instrumentation, which type of control loop measures an incoming disturbance before it enters the process unit and takes corrective control action before an error occurs in the output variable?",
+      "opts": [
+        "Feedforward Control",
+        "Feedback Control",
+        "Cascade Master Loop",
+        "Split-Range Control"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "In batch reactor safety engineering, what hazard occurs when an exothermic reaction's rate of heat generation exceeds the cooling jacket's maximum heat removal capacity, causing accelerating temperature and pressure rises?",
+      "opts": [
+        "Thermal Runaway Reaction",
+        "Deflagration-to-Detonation Transition",
+        "Vapor Cloud Explosion (VCE)",
+        "Boiling Liquid Expanding Vapor Explosion (BLEVE)"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "What equation in multi-component flash distillation is solved iteratively for the vapor fraction ψ = V/F given feed composition zi and equilibrium K-values?",
+      "opts": [
+        "Rachford-Rice Equation",
+        "Fenske Equation",
+        "Underwood Equation",
+        "Gilliland Correlation"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "In mass transfer across gas-liquid interfaces, which theoretical model assumes that the entire mass transfer resistance resides in two stagnant thin fluid films on either side of the interface with equilibrium at the contact surface?",
+      "opts": [
+        "Whitman Two-Film Theory",
+        "Higbie Penetration Theory",
+        "Danckwerts Surface Renewal Theory",
+        "Boundary Layer Shear Theory"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "In industrial ammonia synthesis via the exothermic reversible Haber-Bosch reaction [N2 + 3H2 ⇌ 2NH3], why is the commercial process operated at an elevated temperature (400–500°C) despite Le Chatelier's principle favoring lower temperatures for equilibrium conversion?",
+      "opts": [
+        "To achieve an economically acceptable reaction rate over the iron-based catalyst, compensating with high pressure (150–250 bar) to shift equilibrium favorably",
+        "Because ammonia decomposes spontaneously at temperatures below 300°C",
+        "To prevent condensation of toxic liquid nitrogen in the converter beds",
+        "Because nitrogen and hydrogen form an explosive solid hydrate at lower temperatures"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "In membrane separations such as reverse osmosis, what phenomenon occurs when rejected solute molecules accumulate at the active membrane surface, creating an elevated boundary concentration that opposes forward permeation flux?",
+      "opts": [
+        "Concentration Polarization",
+        "Donnan Exclusion",
+        "Fouling Gel Desorption",
+        "Electro-osmotic Dewatering"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "What dimensionless number characterizes the ratio of buoyant forces to viscous forces in natural (free) convective heat transfer in fluids?",
+      "opts": [
+        "Grashof Number (Gr)",
+        "Rayleigh Number (Ra)",
+        "Reynolds Number (Re)",
+        "Froude Number (Fr)"
+      ],
+      "ans": 0
+    }
+  ],
+  "environmental-engineering": [
+  {
+    "q": "In wastewater engineering, what parameter measures the quantity of dissolved oxygen consumed by microorganisms while biologically decomposing organic matter over 5 days at 20°C?",
+    "opts": [
+      "Biochemical Oxygen Demand (BOD5)",
+      "Chemical Oxygen Demand (COD)",
+      "Total Organic Carbon (TOC)",
+      "Dissolved Oxygen Saturation (DO)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What is the primary biological mechanism in secondary activated sludge wastewater treatment?",
+    "opts": [
+      "Aerobic biological decomposition of dissolved organics by a suspended culture of microorganisms forming settleable flocs",
+      "Anaerobic methane gas generation in sealed digestor tanks",
+      "Coagulation and precipitation of colloids using alum salts",
+      "Disinfection of enteric pathogens via ultraviolet irradiation"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In air pollution control, which industrial control device uses high-voltage electrostatic charges to remove particulate matter (PM2.5 / PM10) from exhaust gas streams?",
+    "opts": [
+      "Electrostatic Precipitator (ESP)",
+      "Fabric Filter Baghouse",
+      "Wet Venturi Scrubber",
+      "Thermal Catalytic Oxidizer"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What physical law governs the steady-state volumetric rate of groundwater flow through porous soil media under a hydraulic gradient?",
+    "opts": [
+      "Darcy's Law",
+      "Fick's Second Law of Diffusion",
+      "Stokes' Law of Sedimentation",
+      "Poiseuille's Capillary Flow Equation"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In municipal drinking water treatment, which chemical coagulant is most widely dosed in rapid-mix tanks to destabilize negative surface charges on colloidal clay particles?",
+    "opts": [
+      "Alum [Aluminum Sulfate, Al2(SO4)3·14H2O] or Ferric Chloride",
+      "Sodium Hydroxide (Caustic Soda)",
+      "Activated Powdered Carbon",
+      "Calcium Hypochlorite"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What engineered barrier system is mandatory at the base of modern sanitary municipal solid waste (MSW) landfills to protect groundwater aquifers?",
+    "opts": [
+      "Composite Liner (HDPE Geomembrane over low-permeability compacted clay) with Leachate Collection System",
+      "Single layer of uncompacted sandy gravel",
+      "Permeable geotextile fabric directly on bedrock",
+      "Concrete slab with unsealed expansion joints"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In water quality analysis, how does Chemical Oxygen Demand (COD) typically compare to Biochemical Oxygen Demand (BOD5) for the same industrial wastewater sample?",
+    "opts": [
+      "COD is always higher than or equal to BOD5 because it oxidizes chemically both biodegradable and non-biodegradable organics",
+      "COD is always lower than BOD5 because chemicals cannot oxidize carbohydrates",
+      "COD and BOD5 are strictly equal in all natural waters",
+      "COD is zero for any wastewater containing toxic metals"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What atmospheric phenomenon traps ground-level air pollutants in valleys during cold, calm nights when a layer of warm air covers cooler air near the ground?",
+    "opts": [
+      "Thermal Temperature Inversion",
+      "Atmospheric Adiabatic Lapse Expansion",
+      "Coriolis Deflection",
+      "Monsoon Convection"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In environmental toxicology, what metric represents the single calculated chemical dose that proves lethal to exactly 50% of an animal test population?",
+    "opts": [
+      "Lethal Dose 50 (LD50)",
+      "No Observed Adverse Effect Level (NOAEL)",
+      "Reference Dose (RfD)",
+      "Maximum Contaminant Level Goal (MCLG)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "Which greenhouse gas emitted primarily by agricultural livestock, rice paddies, and anaerobic landfill decay has a 100-year Global Warming Potential ~28-36 times greater than CO2?",
+    "opts": [
+      "Methane (CH4)",
+      "Nitrous Oxide (N2O)",
+      "Sulfur Hexafluoride (SF6)",
+      "Carbon Monoxide (CO)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In environmental legislation, what comprehensive assessment document evaluates potential environmental, ecological, and socioeconomic impacts before executing a major infrastructure project?",
+    "opts": [
+      "Environmental Impact Assessment (EIA) / Environmental Impact Statement (EIS)",
+      "Toxic Release Inventory (TRI) Report",
+      "Safety Data Sheet (SDS)",
+      "Pollution Prevention Plan (P2)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What biological nutrient removal process converts toxic ammonia (NH3/NH4+) into nitrate (NO3-) in wastewater under aerobic conditions?",
+    "opts": [
+      "Nitrification (catalyzed by Nitrosomonas and Nitrobacter bacteria)",
+      "Denitrification (heterotrophic anoxic reduction)",
+      "Anammox process",
+      "Ammonification of organic nitrogen"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In drinking water disinfection, what carcinogenic disinfection byproducts (DBPs) are formed when free chlorine reacts with natural organic matter (humic acids)?",
+    "opts": [
+      "Trihalomethanes (THMs) and Haloacetic Acids (HAAs)",
+      "Polychlorinated Biphenyls (PCBs)",
+      "Per- and Polyfluoroalkyl Substances (PFAS)",
+      "Polycyclic Aromatic Hydrocarbons (PAHs)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "Which soil remediation technology utilizes living green plants to extract, stabilize, or degrade heavy metals and organic contaminants from polluted soils?",
+    "opts": [
+      "Phytoremediation",
+      "Soil Vapor Extraction (SVE)",
+      "In-Situ Chemical Oxidation (ISCO)",
+      "Thermal Desorption Pyrolysis"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What physical law predicts the terminal settling velocity of discrete suspended solid particles in an ideal sedimentation basin?",
+    "opts": [
+      "Stokes' Law",
+      "Bernoulli's Principle",
+      "Henry's Law of Gas Solubility",
+      "Fanning Friction Equation"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In hazardous waste management under US RCRA regulations, which of the following is NOT one of the four characteristic hazardous waste criteria?",
+    "opts": [
+      "Radioactivity (regulated under Atomic Energy Act, not RCRA Characteristic)",
+      "Ignitability",
+      "Corrosivity",
+      "Reactivity / Toxicity"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What air pollution control device absorbs acidic gases such as Sulfur Dioxide (SO2) from coal-fired power plant flue gas by spraying a calcium limestone slurry?",
+    "opts": [
+      "Flue Gas Desulfurization (FGD) Wet Scrubber",
+      "Cyclonic Dust Separator",
+      "Biofilter Compost Bed",
+      "Selective Catalytic Reduction (SCR) Chamber"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In lake ecology, what condition characterized by excessive nutrient enrichment (phosphorus/nitrogen) triggers harmful algal blooms and benthic oxygen depletion?",
+    "opts": [
+      "Eutrophication",
+      "Oligotrophication",
+      "Acidification",
+      "Thermal Stratification"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What membrane filtration technology operates under high hydrostatic pressure exceeding osmotic pressure to desalt seawater and remove dissolved inorganic ions?",
+    "opts": [
+      "Reverse Osmosis (RO)",
+      "Ultrafiltration (UF)",
+      "Microfiltration (MF)",
+      "Gravity Sand Filtration"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In environmental monitoring, what persistent synthetic 'forever chemicals' with strong carbon-fluorine bonds are widely detected in groundwater due to aqueous firefighting foams?",
+    "opts": [
+      "PFAS (Per- and Polyfluoroalkyl Substances: PFOA, PFOS)",
+      "Organophosphate Pesticides (Malathion)",
+      "Chlorofluorocarbons (CFC-11)",
+      "Benzene, Toluene, Ethylbenzene, Xylene (BTEX)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What secondary biological treatment unit trickles settled wastewater over an open bed of rocks or corrugated plastic media coated with a microbial slime layer?",
+    "opts": [
+      "Trickling Filter (Biofilter)",
+      "Upflow Anaerobic Sludge Blanket (UASB)",
+      "Oxidation Ditch",
+      "Sequencing Batch Reactor (SBR)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In air pollution modeling, which mathematical model assumes pollutants disperse downwind in a steady-state cone with normal distribution in vertical and lateral directions?",
+    "opts": [
+      "Gaussian Plume Model",
+      "Box Model of Ambient Smog",
+      "Eulerian Photochemical Grid Model",
+      "Lagrangian Particle Dispersion Trajectory"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What is the primary function of a selective catalytic reduction (SCR) system on internal combustion exhaust stacks?",
+    "opts": [
+      "Reducing Nitrogen Oxides (NOx) to harmless N2 and H2O using ammonia or urea as a reducing agent",
+      "Converting carbon dioxide into synthetic methanol",
+      "Filtering coarse fly ash particles larger than 50 microns",
+      "Oxidizing carbon monoxide into elemental diamond"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In solid waste management, what metric represents the ratio of solid waste mass diverted from landfills through recycling and composting to total waste generated?",
+    "opts": [
+      "Diversion Rate (%)",
+      "Compaction Ratio",
+      "Generation Rate per Capita",
+      "Landfill Tipping Fee"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What gas is produced in the largest quantity during anaerobic digestion of municipal sewage sludge (approx. 60-65% CH4 and 35-40% CO2)?",
+    "opts": [
+      "Biogas (Methane and Carbon Dioxide)",
+      "Pure Hydrogen Gas",
+      "Nitrogen Dioxide",
+      "Hydrogen Cyanide"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In hydrology and stormwater engineering, what standard equation estimates peak stormwater runoff discharge Q = C * I * A for small urban drainage basins?",
+    "opts": [
+      "The Rational Method",
+      "Manning's Equation for Open Channels",
+      "Unit Hydrograph Convolution",
+      "Muskingum River Flood Routing"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "Which international environmental treaty established in 1987 phase out chlorofluorocarbons (CFCs) and halons to protect the stratospheric ozone layer?",
+    "opts": [
+      "The Montreal Protocol",
+      "The Kyoto Protocol",
+      "The Paris Climate Agreement",
+      "The Basel Convention on Transboundary Wastes"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In groundwater contaminant transport, what process causes a dissolved contaminant plume to spread longitudinally and transversely faster than average advective pore velocity?",
+    "opts": [
+      "Hydrodynamic Dispersion (Molecular Diffusion + Mechanical Dispersion)",
+      "Sorption Equilibrium Isotherm",
+      "Radioactive Half-life Decay",
+      "Capillary Action Wicking"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What is the Sludge Volume Index (SVI) used to assess in an activated sludge wastewater treatment plant?",
+    "opts": [
+      "Settling characteristics and compactibility of activated sludge in secondary clarifiers (mL/g)",
+      "Total bacterial count per liter of mixed liquor",
+      "Rate of biological nitrification kinetics",
+      "Heavy metal adsorption capacity on cell walls"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In acoustics and environmental noise control, what frequency-weighting network mimics the human ear's sensitivity across conversational frequencies when reporting dBA decibels?",
+    "opts": [
+      "A-Weighting Curve",
+      "C-Weighting Curve for Explosive Blast",
+      "Z-Weighting Linear Response",
+      "Octave Band Center Filter"
+    ],
+    "ans": 0
+  }
+],
+  "biomedical-engineering": [
+  {
+    "q": "In biomedical engineering, what property defines a biomaterial's ability to perform its desired function without inducing adverse local or systemic host responses?",
+    "opts": [
+      "Biocompatibility",
+      "Bioactivity",
+      "Bioerosion Rate",
+      "Hemolysis Index"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "Which cardiac diagnostic signal records the electrical depolarization and repolarization waves of the human heart myocardium from skin electrodes?",
+    "opts": [
+      "Electrocardiogram (ECG / EKG)",
+      "Electromyogram (EMG)",
+      "Electroencephalogram (EEG)",
+      "Electrooculogram (EOG)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In clinical Magnetic Resonance Imaging (MRI), what atomic nucleus is most commonly imaged due to its high abundance in human biological tissues?",
+    "opts": [
+      "Hydrogen-1 (Proton, 1H)",
+      "Carbon-12 (12C)",
+      "Oxygen-16 (16O)",
+      "Sodium-23 (23Na)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What phenomenon describes the direct structural and functional connection between living bone tissue and the surface of a load-bearing implant (e.g. titanium dental/orthopedic screws)?",
+    "opts": [
+      "Osseointegration",
+      "Fibrous Encapsulation",
+      "Epithelial Invagination",
+      "Galvanic Corrosion"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In bioinstrumentation, what circuit amplifier is standardly used as the front-end to reject high common-mode 50/60 Hz power-line interference while amplifying microvolt biopotentials?",
+    "opts": [
+      "Instrumentation Amplifier with High Common-Mode Rejection Ratio (CMRR)",
+      "Single-Ended Inverting Op-Amp",
+      "Current-to-Voltage Transimpedance Buffer",
+      "Passive Diode Peak Detector"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What is the primary physical principle of Ultrasound pulse-echo medical imaging?",
+    "opts": [
+      "Piezoelectric acoustic wave reflection at acoustic impedance mismatches between adjacent biological tissues",
+      "X-ray photoelectric absorption in heavy elements",
+      "Radiofrequency nuclear magnetic precession in superconducting coils",
+      "Gamma ray scintillation following positron annihilation"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In hemodialysis therapy for end-stage renal failure, across what artificial membrane structure do metabolic toxins (urea, creatinine) diffuse from blood into dialysate?",
+    "opts": [
+      "Semipermeable Hollow Fiber Dialyzer Membrane",
+      "Impermeable Silicone Tubing",
+      "Expanded Polytetrafluoroethylene (ePTFE) Solid Sheet",
+      "Hydrophobic Polycarbonate Filter"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What mechanical behavior is characteristic of biological soft tissues (tendons, ligaments, articular cartilage) where stress depends on both strain and strain rate?",
+    "opts": [
+      "Viscoelasticity (Hysteresis, Creep, and Stress Relaxation)",
+      "Linear Hookean Elasticity",
+      "Ideal Perfect Plasticity",
+      "Brittle Isotropic Hardening"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In tissue engineering, what temporary 3D porous construct provides architectural support and biochemical cues for cell attachment, proliferation, and extracellular matrix deposition?",
+    "opts": [
+      "Tissue Engineering Scaffold",
+      "Petri Dish Monolayer",
+      "Dialysis Cassette",
+      "Cryogenic Storage Straw"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "Which FDA medical device regulatory pathway is used for Class II devices demonstrating substantial equivalence to a legally marketed predicate device?",
+    "opts": [
+      "510(k) Premarket Notification",
+      "Premarket Approval (PMA)",
+      "Humanitarian Device Exemption (HDE)",
+      "De Novo Classification Request"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What electrical waveform on an ECG tracing corresponds to ventricular depolarization immediately prior to mechanical ventricular contraction?",
+    "opts": [
+      "QRS Complex",
+      "P Wave",
+      "T Wave",
+      "PR Segment"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In Computed Tomography (CT) imaging, what normalized unit represents tissue X-ray attenuation relative to distilled water (0 HU) and air (-1000 HU)?",
+    "opts": [
+      "Hounsfield Unit (HU)",
+      "Becquerel (Bq)",
+      "Sievert (Sv)",
+      "Tesla (T)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What synthetic biodegradable polymer is standardly used for bioresorbable surgical sutures and orthopedic interference screws?",
+    "opts": [
+      "Poly(lactic-co-glycolic acid) (PLGA) / Polylactic Acid (PLA)",
+      "Ultra-High-Molecular-Weight Polyethylene (UHMWPE)",
+      "Polytetrafluoroethylene (Teflon)",
+      "Polycarbonate (PC)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In clinical neural engineering, which EEG brainwave frequency band (8 - 13 Hz) is prominently recorded over the occipital lobe during relaxed, awake states with eyes closed?",
+    "opts": [
+      "Alpha Waves",
+      "Delta Waves (0.5 - 4 Hz)",
+      "Beta Waves (13 - 30 Hz)",
+      "Gamma Waves (>30 Hz)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What device monitors continuous arterial oxygen saturation (SpO2) non-invasively by measuring optical absorbance ratios of oxygenated and deoxygenated hemoglobin at 660 nm and 940 nm?",
+    "opts": [
+      "Pulse Oximeter",
+      "Capnograph",
+      "Plethysmograph",
+      "Spirometer"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What mechanism causes foreign body giant cell formation around permanent subcutaneous implants?",
+    "opts": [
+      "Chronic Foreign Body Reaction triggered by macrophage fusion on non-degradable surfaces",
+      "Acute Type I IgE anaphylaxis",
+      "Bacterial biofilm synthesis without leukocyte activation",
+      "Enzymatic hydrolysis of metallic grain boundaries"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In orthopedic biomechanics of total hip replacement, what phenomenon causes bone density loss surrounding a stiff metal femoral stem due to reduction of physiological load?",
+    "opts": [
+      "Stress Shielding (Wolff's Law adaptation)",
+      "Osteonecrosis of the Femoral Head",
+      "Aseptic Loosening via Wear Debris",
+      "Creep Deformation of Titanium"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "Which international standard specifies safety and essential performance requirements for Medical Electrical Equipment?",
+    "opts": [
+      "IEC 60601-1",
+      "ISO 9001",
+      "ISO 14001",
+      "IEEE 802.11"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In cardiac pacing, what does a Demand Pacemaker (e.g. VVI mode) do when it senses an intrinsic ventricular R-wave from the patient's own heart?",
+    "opts": [
+      "Inhibits its scheduled pacing pulse to avoid competitive pacing",
+      "Triggers an instantaneous high-voltage defibrillation shock",
+      "Switches automatically to maximum rate asynchronous pacing",
+      "Emits an audible alarm and disconnects the lead"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What biosensor element selectively recognizes glucose molecules in personal blood glucose monitoring strips, catalyzing an electrochemical reaction?",
+    "opts": [
+      "Glucose Oxidase (GOx) / Glucose Dehydrogenase enzyme",
+      "Monoclonal Antibodies to insulin",
+      "Synthetic Ion-Selective Liquid Membranes",
+      "Colloidal Gold Nanoparticles"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In MRI physics, what relaxation parameter describes the spin-lattice (longitudinal) magnetization recovery time constant?",
+    "opts": [
+      "T1 Relaxation Time",
+      "T2 Spin-Spin Decay Time",
+      "T2* Magnetic Inhomogeneity Decay",
+      "Larmor Precession Frequency"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "Which biopotential electrode is considered the non-polarizable reference standard in clinical electrophysiology recordings due to minimal junction potential drift?",
+    "opts": [
+      "Silver / Silver Chloride (Ag/AgCl) Electrode",
+      "Bare Stainless Steel Needle",
+      "Platinum-Iridium Wire",
+      "Gold Plated Disc"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What is the primary physiological mechanism of an automated external defibrillator (AED) delivering a biphasic electrical shock?",
+    "opts": [
+      "Simultaneously depolarizing a critical mass of myocardial cells to allow the natural sinoatrial (SA) node to regain pacemaker control",
+      "Stimulating the vagus nerve to permanently slow heart rate",
+      "Artificially pumping blood through coronary arteries via muscle spasms",
+      "Electrolytically recharging depleted intracellular ATP stores"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In microfluidics and Lab-on-a-Chip devices, what transparent elastomeric polymer is overwhelmingly cast to form microchannel networks?",
+    "opts": [
+      "Polydimethylsiloxane (PDMS)",
+      "Polyethylene Terephthalate (PET)",
+      "High-Density Polyethylene (HDPE)",
+      "Polystyrene (PS)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What is the function of an intra-aortic balloon pump (IABP) deployed in cardiovascular intensive care?",
+    "opts": [
+      "Inflates during diastole to enhance coronary perfusion and deflates during systole to reduce left ventricular afterload",
+      "Permanently replaces the mitral valve leaflets",
+      "Filters systemic blood clots before reaching the brain",
+      "Generates high-frequency pacing pulses for the left atrium"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In clinical gait analysis, what instrumented floor platform measures vertical, anterior-posterior, and medial-lateral ground reaction forces during walking?",
+    "opts": [
+      "Piezoelectric / Strain-Gauge Force Plate",
+      "Goniometer Arm",
+      "Electromyographic Surface Preamplifier",
+      "Optical Reflective Marker Tracker"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What standard sterilization method uses ionizing radiation to sterilize pre-packaged, heat-sensitive single-use medical devices (syringes, catheters)?",
+    "opts": [
+      "Gamma Irradiation (Cobalt-60) or Electron Beam (E-beam)",
+      "Autoclaving Steam under Pressure (121°C)",
+      "Ethylene Oxide (EtO) Gas (non-radiation)",
+      "Dry Heat Baking (160°C)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In biosignal processing, which digital filtering window is standardly applied to suppress high-frequency muscle tremor noise from an ECG recording?",
+    "opts": [
+      "Low-Pass Filter with cutoff at ~40 Hz - 100 Hz",
+      "High-Pass Filter with cutoff at 500 Hz",
+      "Notch Filter at DC (0 Hz)",
+      "All-Pass Phase Shifter"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What is the primary function of an extracorporeal membrane oxygenator (ECMO)?",
+    "opts": [
+      "Providing external cardiac and respiratory support by adding oxygen to and removing carbon dioxide directly from circulating blood",
+      "Dialyzing urea from renal tubules in acute kidney injury",
+      "Cooling core body temperature during therapeutic hypothermia",
+      "Filtering circulating tumor cells from peripheral blood"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "Which international quality management standard is specific to medical device manufacturing and regulatory compliance?",
+    "opts": [
+      "ISO 13485",
+      "ISO 9001",
+      "ISO 27001",
+      "Good Laboratory Practice (GLP) only"
+    ],
+    "ans": 0
+  }
+],
+  "aerospace-engineering": [
+  {
+    "q": "In fluid dynamics and aerodynamics, which fundamental theorem explains the generation of aerodynamic lift on an airfoil?",
+    "opts": [
+      "Kutta-Joukowski Theorem relating lift per unit span to circulation and free-stream density",
+      "Navier-Stokes Turbulence Closure Hypothesis",
+      "Torricelli's Law of Efflux",
+      "Pascal's Hydrostatic Law"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What happens to the drag divergence Mach number of a swept wing compared to an unswept rectangular wing of equal thickness?",
+    "opts": [
+      "It increases because the effective chordwise Mach number component is reduced by the cosine of sweep angle",
+      "It decreases because tip vortices trigger premature boundary layer separation",
+      "It remains completely unchanged since free-stream velocity is constant",
+      "It drops to zero due to transonic shockwave stagnation"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "Which dimensionless parameter defines the ratio of flow velocity to local speed of sound in compressible aerodynamics?",
+    "opts": [
+      "Mach Number (M)",
+      "Reynolds Number (Re)",
+      "Prandtl Number (Pr)",
+      "Knudsen Number (Kn)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What is the primary metric of rocket engine propulsive efficiency measuring thrust delivered per unit weight flow rate of propellant consumed?",
+    "opts": [
+      "Specific Impulse (Isp, in seconds)",
+      "Thrust-to-Weight Ratio (T/W)",
+      "Characteristic Exhaust Velocity (c*)",
+      "Expansion Area Ratio (Ae/At)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In orbital mechanics, which planar orbital maneuver transfers a spacecraft between two coplanar circular orbits with minimum delta-v?",
+    "opts": [
+      "Hohmann Transfer Orbit",
+      "Bi-elliptic Transfer Orbit",
+      "Geostationary Direct Injection",
+      "Hyperbolic Escape Trajectory"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What thermodynamic cycle forms the operating benchmark for gas turbine aircraft turbojet and turbofan engines?",
+    "opts": [
+      "Brayton Cycle (Joule Cycle)",
+      "Rankine Cycle",
+      "Otto Cycle",
+      "Diesel Cycle"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What aeroelastic instability is characterized by self-excited divergent oscillations of an aircraft wing or empennage in high-speed flight?",
+    "opts": [
+      "Flutter",
+      "Buffeting",
+      "Control Reversal",
+      "Aileron Buzz"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "Across an oblique shock wave in supersonic flow, what happens to the static pressure, static temperature, and Mach number?",
+    "opts": [
+      "Pressure and temperature increase, while Mach number decreases",
+      "Pressure decreases, temperature increases, and Mach number increases",
+      "Pressure, temperature, and Mach number all increase simultaneously",
+      "Pressure and temperature remain constant while Mach number doubles"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "Which flight control surface provides primary control around the aircraft's longitudinal (roll) axis?",
+    "opts": [
+      "Ailerons",
+      "Elevators",
+      "Rudder",
+      "Flaps"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In rocket propulsion, what geometric shape is used in supersonic de Laval nozzles to accelerate hot combustion gases from subsonic to supersonic velocity?",
+    "opts": [
+      "Converging-Diverging Nozzle",
+      "Constant Area Cylindrical Duct",
+      "Purely Diverging Conical Cone",
+      "Converging Venturi Orifice"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What aerodynamic phenomenon causes induced drag on finite wings due to high-pressure air curling from beneath the wing to the upper surface?",
+    "opts": [
+      "Wingtip Vortices",
+      "Skin Friction Boundary Turbulence",
+      "Form Drag Wake Separation",
+      "Wave Drag Shock Formation"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "According to Kepler's First Law of Planetary Motion, what is the geometric shape of satellite orbits around a central celestial body?",
+    "opts": [
+      "Ellipse with the central body located at one of the two foci",
+      "Perfect Circle with the central body at exact geometric center",
+      "Parabola with constant orbital eccentricity equal to 1",
+      "Hyperbola with infinite semi-major axis"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In high-bypass turbofan engines, what parameter represents the ratio of mass flow through the fan duct to mass flow through the engine core?",
+    "opts": [
+      "Bypass Ratio (BPR)",
+      "Pressure Ratio across Compressor (OPR)",
+      "Turbine Inlet Temperature Ratio",
+      "Thrust Specific Fuel Consumption (TSFC)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What primary structural advantage do carbon-fiber reinforced polymer (CFRP) composites offer in modern commercial airliner airframes (e.g. B787, A350)?",
+    "opts": [
+      "Exceptional strength-to-weight ratio, fatigue resistance, and elimination of galvanic metal corrosion",
+      "Zero manufacturing cost and instantaneous automated cold-stamping",
+      "Ability to withstand sustained reentry temperatures over 3000°C without ablative tiles",
+      "Infinitely flexible elasticity with zero structural stiffness"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What speed defines the threshold below which an aircraft cannot generate sufficient aerodynamic lift to maintain level flight at a given weight?",
+    "opts": [
+      "Stall Speed (Vs)",
+      "Never-Exceed Speed (Vne)",
+      "Maneuvering Speed (Va)",
+      "Maximum Structural Cruising Speed (Vno)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In supersonic flight, what is the angle mu of the Mach cone created by a point disturbance moving at Mach M > 1?",
+    "opts": [
+      "sin(mu) = 1 / M",
+      "cos(mu) = M",
+      "tan(mu) = 1 / M^2",
+      "mu = 180° / M"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What spacecraft attitude control actuator exchanges angular momentum with the spacecraft without expending rocket reaction propellant?",
+    "opts": [
+      "Control Moment Gyroscope (CMG) / Reaction Wheel",
+      "Cold Gas Thruster Quads",
+      "Solid Rocket Apogee Kick Motor",
+      "Aerodynamic Trim Tab"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In aircraft stability and control, what condition is required for longitudinal static stability?",
+    "opts": [
+      "The pitch moment curve slope dCm/dalpha must be negative (dCm/dalpha < 0)",
+      "The center of gravity must be located behind the aerodynamic center",
+      "The trim lift coefficient must equal zero at all flight attitudes",
+      "The roll damping derivative must be strictly positive"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What thermal protection material is utilized on the Space Shuttle / Starship windward tiles to reradiate intense hypersonic reentry heat?",
+    "opts": [
+      "Reinforced Carbon-Carbon (RCC) and High-Temperature Reusable Surface Insulation (HRSI) Silica Tiles",
+      "Bare structural 7075-T6 aluminum skin",
+      "Fiberglass insulation batts wrapped in polyethylene",
+      "Lead-lined copper sheets"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "Which gas law equation is standardly integrated in the Rocket Equation derived by Konstantin Tsiolkovsky?",
+    "opts": [
+      "Delta-v = Isp * g0 * ln(m0 / mf)",
+      "F = m * a",
+      "P * V = n * R * T",
+      "E = m * c^2"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What condition occurs at the throat of a supersonic rocket nozzle when the local Mach number reaches exactly 1.0?",
+    "opts": [
+      "Choked Flow (Mass flow rate reaches theoretical maximum)",
+      "Shockwave boundary layer detachment",
+      "Static pressure drops to zero gauge",
+      "Combustion gas temperature drops to absolute zero"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In aircraft instruments, what sensor measures total pressure (static plus dynamic pitot pressure) to determine indicated airspeed?",
+    "opts": [
+      "Pitot-Static Tube Probe",
+      "Barometric Altimeter Diaphragm",
+      "Ring Laser Gyroscope",
+      "Angle of Attack Vane"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What aerodynamic effect increases wing lift and reduces induced drag when an aircraft flies within one wingspan height of the ground or water surface?",
+    "opts": [
+      "Ground Effect",
+      "Coanda Effect",
+      "Magnus Effect",
+      "Downwash Deflection Wave"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In structural aircraft design, which component absorbs heavy axial loads in the wing bending moment alongside spar caps?",
+    "opts": [
+      "Wing Skin (Stressed-Skin Monocoque construction)",
+      "Interior Passenger Floor Carpeting",
+      "Trailing-Edge Flap Fairing",
+      "Pitot Tube Mounting Bracket"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What orbit has an orbital period of exactly 23 hours, 56 minutes, and 4 seconds, matching Earth's sidereal rotation at ~35,786 km altitude?",
+    "opts": [
+      "Geostationary / Geosynchronous Orbit (GEO)",
+      "Low Earth Orbit (LEO)",
+      "Molniya Highly Elliptical Orbit",
+      "Sun-Synchronous Polar Orbit (SSO)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In aircraft engine compressors, what dangerous flow instability causes complete breakdown of forward airflow and violent backflow through the engine inlet?",
+    "opts": [
+      "Compressor Surge (Stall)",
+      "Afterburner Light-off Failure",
+      "Turbine Choking",
+      "Cavitation in Fuel Injection Pumps"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "Which aerodynamic device mounted on wingtips reduces vortex strength and improves fuel efficiency by 3-5%?",
+    "opts": [
+      "Winglets (Sharklets)",
+      "Vortex Generators",
+      "Leading Edge Slats",
+      "Spoilers / Speed Brakes"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What is the escape velocity required from Earth's surface to completely break free from Earth's gravitational field (neglecting atmospheric drag)?",
+    "opts": [
+      "~11.2 km/s (approx. 40,320 km/h)",
+      "~7.8 km/s (orbital velocity)",
+      "~3.1 km/s",
+      "~25.4 km/s"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In helicopter aerodynamics, what mechanism tilts the main rotor tip-path plane to achieve directional translational flight?",
+    "opts": [
+      "Swashplate Assembly (Cyclic pitch control)",
+      "Tail Rotor Collective Yaw Governor",
+      "Freewheeling Clutch",
+      "Mast Bending Gimbal"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What is the purpose of an aircraft Auxiliary Power Unit (APU) located in the tail cone?",
+    "opts": [
+      "Providing electrical power and pneumatic compressed air to start main engines on the ground",
+      "Providing supplemental cruise thrust during transatlantic flight",
+      "Deploying the emergency landing gear via hydraulic ram",
+      "Pumping fuel between left and right wing tanks"
+    ],
+    "ans": 0
+  }
+],
+  "architectural-engineering": [
+  {
+    "q": "In Architectural Engineering, what does Level of Development (LOD 300) signify in Building Information Modeling (BIM)?",
+    "opts": [
+      "Model elements are graphically defined with specific quantity, size, shape, location, and orientation",
+      "Conceptual massing showing only approximate spatial volume",
+      "As-built facility management model with operating manuals and warranty links",
+      "Fabrication-level assembly model with shop weld details (LOD 400)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "Which structural framing system uses rigid column-to-beam connections to resist lateral wind and seismic forces without diagonal braces?",
+    "opts": [
+      "Moment-Resisting Frame (MRF)",
+      "Braced Frame System",
+      "Bearing Wall System",
+      "Shear Wall Core System"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What is the primary physical function of a building envelope's continuous air barrier system?",
+    "opts": [
+      "Preventing uncontrolled air leakage and convective moisture transport through exterior assemblies",
+      "Supporting the primary structural roof dead loads",
+      "Reflecting solar infrared radiation to reduce ambient air temperature",
+      "Providing sound amplification inside building atriums"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What parameter measures the overall rate of heat transfer through a composite building envelope assembly?",
+    "opts": [
+      "U-factor (Thermal Transmittance, W/m²·K)",
+      "Sound Transmission Class (STC)",
+      "Coefficient of Thermal Expansion",
+      "Solar Heat Gain Coefficient (SHGC)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In architectural acoustics, what does the Sabine equation calculate for an enclosed space?",
+    "opts": [
+      "Reverberation Time (RT60)",
+      "Sound Transmission Class across partitions",
+      "Impact Isolation Class of floor slabs",
+      "Noise Reduction Coefficient of ceiling baffles"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "Which HVAC distribution system delivers variable air volumes at constant temperature to individual building thermal zones?",
+    "opts": [
+      "Variable Air Volume (VAV) System",
+      "Constant Air Volume (CAV) System",
+      "Single-Duct Terminal Reheat System",
+      "Direct Expansion (DX) Window Unit"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In life safety design, what standard NFPA / IBC calculation determines the minimum required width of egress doors and stairs?",
+    "opts": [
+      "Occupant Load multiplied by the capacity egress factor (e.g. 0.3 in/person for stairs)",
+      "Floor area divided by the building height",
+      "Total structural column spacing along corridor walls",
+      "Maximum window glazing area of adjacent facades"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What structural mechanism counteracts thermal expansion and seismic drift between adjacent independent building wings?",
+    "opts": [
+      "Seismic and Expansion Joints with elastomeric covers",
+      "Continuous welded steel tension plates",
+      "Rigid monolithic epoxy grouting",
+      "Prestressed tendon post-tensioning anchors"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In daylighting engineering, what metric defines the ratio of indoor illuminance on a working plane to outdoor unobstructed overcast sky illuminance?",
+    "opts": [
+      "Daylight Factor (DF)",
+      "Daylight Glare Probability (DGP)",
+      "Color Rendering Index (CRI)",
+      "Luminous Efficacy of Light Source"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What foundation type is engineered as a continuous, thick reinforced concrete slab supporting an entire building on soft, compressible soils?",
+    "opts": [
+      "Mat / Raft Foundation",
+      "Isolated Spread Footing",
+      "Strip Wall Footing",
+      "Driven Precast Concrete Friction Piles"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In sustainable architecture, what credit category in LEED v4 evaluates lifecycle impact reduction, recycling, and transparency?",
+    "opts": [
+      "Materials and Resources (MR)",
+      "Energy and Atmosphere (EA)",
+      "Indoor Environmental Quality (EQ)",
+      "Water Efficiency (WE)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What physical phenomenon occurs when a highly conductive building element penetrates insulation, causing localized heat loss and condensation?",
+    "opts": [
+      "Thermal Bridging",
+      "Thermal Mass Buffering",
+      "Stack Effect Ventilation",
+      "Convective Chimney Effect"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In building electrical systems, which transformer connection configuration is standardly used for 3-phase commercial distribution providing 480Y/277V or 208Y/120V?",
+    "opts": [
+      "Delta-Wye (Δ-Y) with grounded neutral",
+      "Delta-Delta (Δ-Δ) floating ungrounded",
+      "Open-Delta (V-V) single phase",
+      "Wye-Wye (Y-Y) without neutral ground"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "Which type of concrete prestressing tensions high-strength steel strands AFTER the surrounding cast-in-place concrete has cured?",
+    "opts": [
+      "Post-Tensioning",
+      "Pre-Tensioning",
+      "Pre-Cambering",
+      "Passive Steel Rebar Placement"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What is the natural vertical air movement in high-rise buildings driven by indoor-to-outdoor air density and temperature differentials?",
+    "opts": [
+      "Stack Effect (Chimney Effect)",
+      "Venturi Wind Tunnel Effect",
+      "Bernoulli Pressure Lift",
+      "Coriolis Displacement"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In structural steel design, what ASTM specification designates the standard high-strength structural steel wide-flange beams (50 ksi yield)?",
+    "opts": [
+      "ASTM A992",
+      "ASTM A36",
+      "ASTM A500 Grade B",
+      "ASTM A53"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "Which acoustic rating measures a building partition's ability to attenuate airborne sound transmission across speech frequencies?",
+    "opts": [
+      "Sound Transmission Class (STC)",
+      "Noise Reduction Coefficient (NRC)",
+      "Impact Insulation Class (IIC)",
+      "Ceiling Attenuation Class (CAC)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What psychrometric property represents the temperature at which ambient air reaches 100% relative humidity and moisture begins to condense?",
+    "opts": [
+      "Dew Point Temperature",
+      "Dry-Bulb Temperature",
+      "Wet-Bulb Depression",
+      "Specific Enthalpy"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In facade engineering, what pressure-equalization design principle prevents rain penetration through exterior curtain wall cladding?",
+    "opts": [
+      "Rainscreen Principle (Drained and Back-Ventilated)",
+      "Face-Sealed Barrier Glazing",
+      "Non-Porous Exterior Vinyl Wrap",
+      "Direct Surface Silicone Gasketing"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "Which fire suppression system maintains water under pressure in distribution pipes at all times for immediate discharge when a sprinkler head fuses?",
+    "opts": [
+      "Wet Pipe Sprinkler System",
+      "Dry Pipe Sprinkler System",
+      "Deluge Fire System",
+      "Pre-Action Interlock System"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In architectural lighting design, what unit measures the total luminous flux emitted by a light source in all directions?",
+    "opts": [
+      "Lumen (lm)",
+      "Lux (lx)",
+      "Candela (cd)",
+      "Foot-candle (fc)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What building code designation indicates structural walls, columns, and floors engineered to resist fire collapse for a certified duration (e.g. 2 hours)?",
+    "opts": [
+      "Fire-Resistance Rating (FRR)",
+      "Flame-Spread Index (FSI)",
+      "Smoke-Developed Index (SDI)",
+      "Combustibility Class A"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In structural concrete engineering, what is the critical design check to prevent a column from punching directly through a flat slab foundation or floor?",
+    "opts": [
+      "Two-Way (Punching) Shear Stress around the column perimeter",
+      "One-Way Beam Shear at d distance from support",
+      "Flexural Reinforcement Yielding",
+      "Direct Compression Crushing"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "Which indoor environmental metric measures air freshness by tracking metabolic respiration byproducts in occupied classrooms and offices?",
+    "opts": [
+      "Carbon Dioxide (CO2) concentration in ppm",
+      "Relative Humidity percentage",
+      "Ozone (O3) particle count",
+      "Volatile Organic Compounds (VOC) in ppb"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What is the primary function of a vapor retarder (Class I or II) installed on the warm-in-winter side of an insulated exterior wall?",
+    "opts": [
+      "Preventing water vapor diffusion from condensing on cold interstitial surfaces within the wall cavity",
+      "Acting as the primary exterior weather barrier against driving rain",
+      "Reflecting solar ultraviolet degradation",
+      "Increasing the acoustic dampening of gypsum wallboard"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In building plumbing design, what vent pipe prevents siphonage of water seals in fixture drainage traps?",
+    "opts": [
+      "Plumbing Vent Stack (Soil Stack Vent)",
+      "Cleanout Relief Drain",
+      "Stormwater Downspout",
+      "Grease Interceptor By-pass"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What structural damper system uses a suspended heavy mass tuned to the building's natural frequency to mitigate wind-induced swaying in supertall skyscrapers?",
+    "opts": [
+      "Tuned Mass Damper (TMD)",
+      "Buckling-Restrained Braced Frame (BRBF)",
+      "Base Isolation Elastomeric Bearing",
+      "Viscous Fluid Wall Damper"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In construction documentation, which drawing set coordinates MEP systems with architectural and structural layouts to eliminate spatial clashes?",
+    "opts": [
+      "MEP Coordination / Clash Detection Composite Drawings",
+      "Architectural Schematic Concept Renderings",
+      "Outline Specification Brief",
+      "Zoning Variance Site Surveys"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What building energy standard established by ASHRAE defines baseline minimum energy efficiency for commercial building envelopes and mechanical systems?",
+    "opts": [
+      "ASHRAE Standard 90.1",
+      "ASHRAE Standard 62.1",
+      "ASHRAE Standard 55",
+      "ASHRAE Standard 189.1"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In structural design of masonry buildings, what reinforced concrete or bond-beam element ties perimeter walls together at floor and roof levels?",
+    "opts": [
+      "Tie Beam / Bond Beam / Ring Beam",
+      "Lintel over window openings",
+      "Mortar Bed Joint",
+      "Corbel Shelf Angle"
+    ],
+    "ans": 0
+  }
+],
+  "computer-science": [
+  {
+    "q": "In Operating Systems, which condition is NOT one of Coffman's four necessary conditions for deadlock?",
+    "opts": [
+      "Preemption allowed",
+      "Mutual exclusion",
+      "Hold and wait",
+      "Circular wait"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What is the average time complexity of searching for an element in a balanced Binary Search Tree (AVL or Red-Black)?",
+    "opts": [
+      "O(log n)",
+      "O(n)",
+      "O(1)",
+      "O(n log n)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "Which transport layer protocol provides reliable, connection-oriented, and byte-stream delivery with flow and congestion control?",
+    "opts": [
+      "Transmission Control Protocol (TCP)",
+      "User Datagram Protocol (UDP)",
+      "Internet Protocol (IP)",
+      "Internet Control Message Protocol (ICMP)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In Relational Database Management Systems, what does the 'I' in ACID transaction guarantees represent?",
+    "opts": [
+      "Isolation",
+      "Integrity",
+      "Indexing",
+      "Idempotence"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What is the primary role of the Translation Lookaside Buffer (TLB) in a modern CPU memory management unit?",
+    "opts": [
+      "Caching virtual-to-physical address page translations",
+      "Buffering dirty cache lines before writeback to main memory",
+      "Predicting conditional branch outcomes in the pipeline",
+      "Storing pre-decoded micro-operations"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "Which data structure is fundamentally used to implement Breadth-First Search (BFS) graph traversal?",
+    "opts": [
+      "Queue (FIFO)",
+      "Stack (LIFO)",
+      "Binary Min-Heap",
+      "Disjoint Set Union (DSU)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In the OSI 7-layer reference model, at which layer do Routers primarily operate?",
+    "opts": [
+      "Network Layer (Layer 3)",
+      "Data Link Layer (Layer 2)",
+      "Transport Layer (Layer 4)",
+      "Session Layer (Layer 5)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What normal form removes partial dependencies of non-prime attributes on a composite candidate key?",
+    "opts": [
+      "Second Normal Form (2NF)",
+      "First Normal Form (1NF)",
+      "Third Normal Form (3NF)",
+      "Boyce-Codd Normal Form (BCNF)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "Which page replacement algorithm suffers from Belady's Anomaly where increasing physical frames increases page faults?",
+    "opts": [
+      "First-In, First-Out (FIFO)",
+      "Least Recently Used (LRU)",
+      "Optimal Page Replacement (OPT)",
+      "Clock / Second-Chance Algorithm"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In compiler construction, which phase converts a linear stream of source characters into a stream of tokens?",
+    "opts": [
+      "Lexical Analysis (Scanner)",
+      "Syntax Analysis (Parser)",
+      "Semantic Analysis",
+      "Intermediate Code Generation"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What is the worst-case time complexity of the standard QuickSort algorithm with an unlucky pivot choice?",
+    "opts": [
+      "O(n^2)",
+      "O(n log n)",
+      "O(n)",
+      "O(log n)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In modern multi-core processors, which protocol is standardly used to maintain cache consistency across private L1/L2 caches?",
+    "opts": [
+      "MESI (Modified, Exclusive, Shared, Invalid)",
+      "Round-Robin bus arbitration",
+      "Two-Phase Commit (2PC)",
+      "Snooping ARP protocol"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What synchronization primitive uses atomic Test-and-Set or Compare-and-Swap instructions without causing the CPU to context-switch into a blocked state?",
+    "opts": [
+      "Spinlock",
+      "POSIX Semaphore",
+      "Condition Variable",
+      "Read-Write Mutex"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In Computer Networks, what is the default size of an IPv4 address compared to an IPv6 address?",
+    "opts": [
+      "32 bits for IPv4, 128 bits for IPv6",
+      "64 bits for IPv4, 128 bits for IPv6",
+      "32 bits for IPv4, 64 bits for IPv6",
+      "16 bits for IPv4, 32 bits for IPv6"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "Which graph algorithm finds the shortest path between all pairs of vertices in a directed weighted graph?",
+    "opts": [
+      "Floyd-Warshall Algorithm",
+      "Dijkstra's Algorithm",
+      "Kruskal's Algorithm",
+      "Prim's Algorithm"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In Database Systems, why are B+ Trees overwhelmingly preferred over balanced BSTs for disk-based storage indexing?",
+    "opts": [
+      "High fanout minimizes the number of disk I/O operations required per search",
+      "B+ Trees require zero memory pointer overhead",
+      "B+ Trees eliminate the need for write-ahead logging",
+      "B+ Trees store all records purely in contiguous volatile registers"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What type of pipeline hazard occurs when an instruction depends on the result of a previous instruction that has not yet completed execution?",
+    "opts": [
+      "Data Hazard (Read-After-Write)",
+      "Structural Hazard",
+      "Control Hazard",
+      "Branch Misprediction Hazard"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In Chomsky's hierarchy of formal grammars, which computational automaton recognizes Context-Free Languages?",
+    "opts": [
+      "Non-Deterministic Pushdown Automaton (PDA)",
+      "Deterministic Finite Automaton (DFA)",
+      "Linear Bounded Automaton",
+      "Turing Machine with unbounded tape"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What algorithm is standardly used for distributed leader election in distributed systems such as Apache ZooKeeper or Raft?",
+    "opts": [
+      "Consensus algorithms like Raft / Paxos",
+      "Diffie-Hellman Key Exchange",
+      "Bellman-Ford Algorithm",
+      "Aho-Corasick String Matcher"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In Cryptography, what is the key characteristic of an asymmetric public-key cryptosystem such as RSA?",
+    "opts": [
+      "Different keys are used for encryption (public) and decryption (private)",
+      "The same secret symmetric key is shared over an insecure channel",
+      "Data can be encrypted but can never be mathematically decrypted",
+      "The ciphertext is always shorter than the plaintext input"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What mechanism prevents priority inversion in real-time operating systems when a low-priority task holds a resource needed by a high-priority task?",
+    "opts": [
+      "Priority Inheritance Protocol",
+      "Preemptive Multithreading",
+      "Round-Robin Quantum Time-Slicing",
+      "Strict First-Come First-Served"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "Which collision resolution technique in hash tables stores collided elements in linked lists outside the primary array?",
+    "opts": [
+      "Separate Chaining",
+      "Linear Probing",
+      "Quadratic Probing",
+      "Double Hashing"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In TCP network congestion control, what event causes the sender to reset its congestion window (cwnd) back to 1 MSS?",
+    "opts": [
+      "Retransmission Timeout (RTO) expiration",
+      "Receiving three duplicate ACKs (Fast Retransmit)",
+      "A standard Window Scale negotiation",
+      "A zero-window probe acknowledgment"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What is the primary function of a Linker during the software build process?",
+    "opts": [
+      "Resolves external symbol references and combines object files into an executable",
+      "Translates high-level source code into assembly instructions",
+      "Expands preprocessor macros and header include directives",
+      "Profiles machine instruction execution bottlenecks"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "Which algorithmic paradigm does the 0/1 Knapsack problem typically require to find an optimal solution in pseudo-polynomial time?",
+    "opts": [
+      "Dynamic Programming",
+      "Greedy Choice Property",
+      "Divide and Conquer",
+      "Backtracking with branch pruning"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What does the Two-Phase Locking (2PL) protocol guarantee in concurrent database transaction scheduling?",
+    "opts": [
+      "Conflict Serializability of transaction execution",
+      "Prevention of all transaction deadlocks",
+      "Instantaneous durability without write-ahead logging",
+      "Zero lock acquisition latency"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In computer architecture, what technique executes instructions out of program order to maximize arithmetic logic unit utilization?",
+    "opts": [
+      "Tomasulo's Algorithm with Reservation Stations",
+      "Static Compiler Inlining",
+      "Single-Cycle Microarchitecture",
+      "Strict In-Order Pipelining"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "Which network security protocol establishes an encrypted tunnel at the Transport Layer between web browsers and servers?",
+    "opts": [
+      "Transport Layer Security (TLS)",
+      "Simple Network Management Protocol (SNMP)",
+      "Address Resolution Protocol (ARP)",
+      "Border Gateway Protocol (BGP)"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "What is the Halting Problem, first formulated and proven undecidable by Alan Turing in 1936?",
+    "opts": [
+      "No general algorithm can determine whether an arbitrary program halts on a given input",
+      "Any program with recursion will inevitably crash with stack overflow",
+      "Computers cannot execute more than one instruction per clock cycle",
+      "Every program is guaranteed to terminate if given infinite memory"
+    ],
+    "ans": 0
+  },
+  {
+    "q": "In modern database query optimization, what data structure estimates attribute value distribution for cardinality estimation?",
+    "opts": [
+      "Equi-depth or Equi-width Histograms",
+      "Bloom Filters",
+      "Skip Lists",
+      "Radix Trees"
+    ],
+    "ans": 0
+  }
+],
   "ai-ml": [
     {
       "q": "Which learning paradigm relies on labeled training datasets consisting of input-output pairs?",
@@ -4833,10 +7366,355 @@ const DOMAIN_QUESTIONS = {
       ],
       "ans": 0
     }
+  ],
+  "iot-embedded": [
+    {
+      "q": "What does the acronym \"IoT\" stand for in modern computing?",
+      "opts": [
+        "Internet of Things",
+        "Interconnected Operating Technology",
+        "Integrated Optical Transmission",
+        "Interface of Telecommunications"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "Which communication protocol is lightweight, publish-subscribe based, and standard for low-bandwidth IoT devices?",
+      "opts": [
+        "MQTT (Message Queuing Telemetry Transport)",
+        "HTTP/1.1",
+        "FTP",
+        "SMTP"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "What is the primary function of a General Purpose Input/Output (GPIO) pin on an MCU?",
+      "opts": [
+        "Sending or reading digital electrical logic levels to/from connected hardware",
+        "Regulating high-voltage AC mains power directly",
+        "Executing optical computations without electricity",
+        "Storing non-volatile firmware image backups"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "In an IoT sensor-actuator loop, what is the specific role of an actuator?",
+      "opts": [
+        "Converting electrical control signals into physical mechanical motion or action",
+        "Measuring ambient environmental temperature and humidity",
+        "Digitizing continuous analog sound waves into binary",
+        "Routing IP packets across distributed WAN routers"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "Which low-power wireless standard operates at 2.4 GHz and is optimized for battery-powered peripheral connections?",
+      "opts": [
+        "Bluetooth Low Energy (BLE)",
+        "Gigabit Ethernet",
+        "Wi-Fi 6 (802.11ax 160MHz)",
+        "DOCSIS 3.1"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "What is the fundamental architectural difference between a Microcontroller (MCU) and a Microprocessor (MPU)?",
+      "opts": [
+        "An MCU integrates CPU, RAM, and Flash ROM on a single silicon die, whereas an MPU relies on external memory",
+        "An MCU cannot execute C code while an MPU can",
+        "An MPU operates strictly at microwatt power while an MCU requires cooling fans",
+        "An MCU lacks arithmetic logic units (ALU)"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "What does the term \"ADC\" represent in embedded sensor signal acquisition?",
+      "opts": [
+        "Analog-to-Digital Converter",
+        "Asynchronous Data Controller",
+        "Automated Device Calibrator",
+        "Auxiliary Direct Channel"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "In embedded C/C++, why is the 'volatile' keyword applied to a hardware register variable?",
+      "opts": [
+        "It instructs the compiler not to optimize reads/writes because the value can change outside program flow",
+        "It stores the variable permanently in read-only Flash memory",
+        "It encrypts the variable using hardware AES-128",
+        "It prevents multiple threads from accessing the variable concurrently"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "Which unlicensed sub-GHz ISM frequency band is standardly allocated for LoRaWAN deployments in Europe?",
+      "opts": [
+        "868 MHz",
+        "2.4 GHz",
+        "5.8 GHz",
+        "433 GHz"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "Why is MQTT significantly more power-efficient than standard HTTP for battery-powered IoT devices?",
+      "opts": [
+        "It has a compact 2-byte fixed header and keeps a persistent TCP connection alive without repeated handshakes",
+        "It transmits data exclusively over analog radio frequencies without IP packets",
+        "It eliminates the need for any network transport layer",
+        "It disables data encryption to save battery"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "In the I2C (Inter-Integrated Circuit) bus protocol, how many physical signal lines are required?",
+      "opts": [
+        "Two: Serial Data (SDA) and Serial Clock (SCL)",
+        "Four: MOSI, MISO, SCK, and CS",
+        "One: Single bidirectional wire without clock",
+        "Eight: 8-bit parallel bus lines"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "How does the SPI (Serial Peripheral Interface) protocol achieve simultaneous full-duplex communication?",
+      "opts": [
+        "Through dedicated unidirectional MOSI (Master Out Slave In) and MISO (Master In Slave Out) lines",
+        "By modulating clock phase on a single shared wire",
+        "Using frequency division multiplexing over radio",
+        "By polling devices sequentially in half-duplex slots"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "What is the critical function of a hardware Watchdog Timer (WDT) in unattended embedded systems?",
+      "opts": [
+        "Automatically triggering a hardware reset if the software freezes or fails to kick/service the timer",
+        "Measuring high-precision real-world wall clock timestamps",
+        "Throttling the CPU clock speed during elevated thermal events",
+        "Monitoring network bandwidth usage for billing purposes"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "In FreeRTOS, what scheduling paradigm is used by default for task execution?",
+      "opts": [
+        "Preemptive priority-based scheduling with time-slicing for equal priority tasks",
+        "Completely non-preemptive cooperative FIFO scheduling",
+        "Shortest Job First without priority preemption",
+        "Random lottery scheduling"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "Which MQTT Quality of Service (QoS) tier guarantees that a message is delivered 'exactly once' using a four-step handshake?",
+      "opts": [
+        "QoS 2",
+        "QoS 0",
+        "QoS 1",
+        "QoS 3"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "Why are pull-up or pull-down resistors necessary on microcontroller digital input pins?",
+      "opts": [
+        "To define a stable high or logic state and eliminate indeterminate floating voltage states",
+        "To step down 230V AC current to 3.3V DC logic levels",
+        "To speed up the crystal oscillator clock frequency",
+        "To filter out all electromagnetic microwave emissions"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "What is Pulse Width Modulation (PWM) primarily utilized for in embedded motor and LED control?",
+      "opts": [
+        "Simulating variable analog output voltages by altering the duty cycle of a rapid digital square wave",
+        "Compressing digital sensor logs before flash storage",
+        "Synchronizing asynchronous serial baud rates",
+        "Modulating audio carrier frequencies for FM radio transmission"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "What is the key advantage of implementing Over-the-Air (OTA) firmware update capabilities in deployed IoT fleets?",
+      "opts": [
+        "Enabling remote patching of vulnerabilities and software enhancements without physical hardware access",
+        "Doubling the physical flash storage capacity of the device",
+        "Allowing microcontrollers to run without an operational power supply",
+        "Eliminating the need for unit testing before firmware releases"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "Which protocol designed by the IETF implements a lightweight RESTful binary model over UDP for constrained nodes?",
+      "opts": [
+        "CoAP (Constrained Application Protocol)",
+        "BGP",
+        "SNMPv1",
+        "WebSockets"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "What is the primary constraint when executing code inside an Interrupt Service Routine (ISR)?",
+      "opts": [
+        "Execution time must be extremely fast; blocking calls, delays, and memory allocations must be avoided",
+        "It must allocate at least 1MB of heap space for telemetry",
+        "It can only be written in pure assembly language",
+        "It must execute a full network HTTP POST request"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "When putting an ESP32 or STM32 into 'Deep Sleep' mode, what subsystem typically remains awake to monitor wake-up events?",
+      "opts": [
+        "The RTC (Real-Time Clock) controller and ULP (Ultra-Low Power) coprocessor",
+        "The primary dual-core Xtensa CPU running at maximum frequency",
+        "The Wi-Fi 802.11 baseband radio transmitter",
+        "The external high-speed SPI Flash memory controller"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "In IoT and RTOS environments, what is 'Priority Inversion' and how is it mitigated?",
+      "opts": [
+        "A high-priority task is blocked by a low-priority task holding a mutex; mitigated via Priority Inheritance",
+        "A low-priority task executes faster than high-priority tasks; mitigated by lowering clock speed",
+        "Interrupts trigger in reverse alphabetical order; mitigated by sorting interrupt vector tables",
+        "Tasks run out of stack memory; mitigated by doubling heap partition size"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "What cryptographic security component provides a Hardware Root of Trust and tamper-resistant key storage in IoT?",
+      "opts": [
+        "Secure Element (e.g. ATECC608A / TPM)",
+        "Software base64 encoder",
+        "CRC32 parity check register",
+        "Read-only SD card adapter"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "How does Direct Memory Access (DMA) drastically improve peripheral throughput in embedded systems?",
+      "opts": [
+        "It transfers bytes directly between peripherals and SRAM without consuming CPU instruction cycles",
+        "It overclocks the memory bus voltage beyond physical silicon ratings",
+        "It converts serial UART bytes into parallel optical beams",
+        "It disables RAM parity checks to eliminate clock latency"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "Which transport security protocol provides TLS equivalent encryption specifically tailored for UDP datagram protocols like CoAP?",
+      "opts": [
+        "DTLS (Datagram Transport Layer Security)",
+        "WPA2-Enterprise",
+        "IPsec in tunnel mode only",
+        "SSH-2 over TCP"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "According to the Nyquist-Shannon sampling theorem, what is required when sampling an analog signal with frequency f_max via ADC?",
+      "opts": [
+        "Sampling frequency f_s must be strictly greater than 2 * f_max to avoid signal aliasing",
+        "Sampling frequency must equal exactly f_max / 2",
+        "Signal amplitude must be converted to 64-bit floating point prior to sampling",
+        "ADC conversion time must be zero nanoseconds"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "What does the Adaptive Data Rate (ADR) mechanism dynamically adjust in LoRaWAN networks?",
+      "opts": [
+        "Spreading Factor (SF) and RF transmit power based on signal-to-noise ratio (SNR) to optimize battery life",
+        "The physical carrier frequency between 433 MHz and 5.8 GHz",
+        "The baud rate of the microcontroller's UART console port",
+        "The Wi-Fi SSID and pre-shared network key"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "In 32-bit ARM Cortex-M microcontrollers, what condition triggers a Hardware UsageFault or BusFault during pointer dereference?",
+      "opts": [
+        "Unaligned memory access on instructions that mandate word-boundary alignment, or accessing non-existent memory",
+        "Writing a logic '1' to an unconfigured GPIO output pin",
+        "Calling a static inline function from an ISR",
+        "Executing a floating-point multiplication on an FPU core"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "What is the primary difference between Edge Computing and Cloud Computing in an industrial IoT (IIoT) ecosystem?",
+      "opts": [
+        "Edge computing processes telemetry locally close to the sensor for ultra-low latency; cloud computing provides centralized heavy analytics",
+        "Edge computing requires million-dollar supercomputers at each sensor node",
+        "Cloud computing only works over wired RS-485 serial cables",
+        "Edge computing does not allow microcontrollers to run any firmware"
+      ],
+      "ans": 0
+    },
+    {
+      "q": "Which hardware circuit protection component suppresses transient high-voltage electrostatic discharge (ESD) spikes on external sensor lines?",
+      "opts": [
+        "TVS (Transient Voltage Suppression) Diodes",
+        "Electrolytic filter capacitors connected in series",
+        "Silicon controlled rectifiers (SCR) in reverse bias",
+        "Step-up autotransformers"
+      ],
+      "ans": 0
+    }
   ]
 };
 
 const ALIAS_MAP = {
+  "data-science": "data-science-machine-learning",
+  "film": "film-production",
+  "film-production": "film-production",
+  "interior": "interior-design",
+  "interior-design": "interior-design",
+  "game-dev": "game-development",
+  "game-development": "game-development",
+  "fashion": "fashion-design",
+  "fashion-designing": "fashion-design",
+  "fashion-design": "fashion-design",
+  "robotics-engineering": "robotics-engineering",
+  "robotics": "robotics-engineering",
+  "petroleum": "petroleum-engineering",
+  "petroleum-engineering": "petroleum-engineering",
+  "marine": "marine-engineering",
+  "marine-engineering": "marine-engineering",
+  "architectural-engineering": "architectural-engineering",
+  "chemical-engineering": "chemical-engineering",
+  "chemical": "chemical-engineering",
+  "chem-eng": "chemical-engineering",
+  "chemical-eng": "chemical-engineering",
+  "environmental-science": "environmental-engineering",
+  "environmental": "environmental-engineering",
+  "bio-medical-engineering": "biomedical-engineering",
+  "bio-medical": "biomedical-engineering",
+  "biomedical": "biomedical-engineering",
+  "automobile-engineering": "aerospace-engineering",
+  "aeronautical": "aerospace-engineering",
+  "aeronautical-engineering": "aerospace-engineering",
+  "aerospace": "aerospace-engineering",
+  "barch": "architectural-engineering",
+  "architecture": "architectural-engineering",
+  "architectural": "architectural-engineering",
+  "computer-engineering": "computer-science",
+  "btech-cse": "computer-science",
+  "cs": "computer-science",
+  "cse": "computer-science",
+  "computer-science-engineering": "computer-science",
+  "iot": "iot-embedded",
+  "iot-embedded": "iot-embedded",
+  "internet-of-things": "iot-embedded",
+  "embedded-systems": "iot-embedded",
+  "embedded": "iot-embedded",
   "biotechnology": "biotechnology",
   "biotech": "biotechnology",
   "bioinformatics": "biotechnology",
@@ -4854,7 +7732,8 @@ const ALIAS_MAP = {
   "mech-eng": "mechanical-engineering",
   "mechanical": "mechanical-engineering",
   "core-engineering": "mechanical-engineering",
-  "aerospace-automobile": "mechanical-engineering",
+  "aerospace-automobile": "aerospace-engineering",
+  "aerospace-engineering": "aerospace-engineering",
   "industrial-engineering": "mechanical-engineering",
   "prompt-engineering": "prompt-engineering",
   "prompt": "prompt-engineering",
@@ -4945,283 +7824,240 @@ const ALIAS_MAP = {
 };
 
 
-function synthesizeDomainQuestions(domainName, domainSlug, targetCount = 30) {
-  const cleanTitle = domainName && domainName.trim() 
-    ? domainName.trim() 
-    : (domainSlug || 'Technical Domain').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+function synthesizeDomainQuestions(domainTitle, domainSlug, targetCount = 30) {
+  const cleanTitle = (domainTitle || '').replace(/\s*\([^)]*\)/g, '').trim() || 'Professional Discipline';
+  const cleanLower = cleanTitle.toLowerCase();
 
-  const templates = [
-    {
-      q: 'In ' + cleanTitle + ', what is the fundamental objective of adopting modern architectural design patterns?',
-      correct: 'To achieve loose coupling, high cohesion, and scalable maintainability across ' + cleanTitle + ' components',
-      distractors: [
-        'To eliminate the need for automated testing and code reviews in ' + cleanTitle,
-        'To force all components to run on a single monolithic thread',
-        'To maximize network bandwidth consumption between service layers'
-      ]
-    },
-    {
-      q: 'When optimizing performance in ' + cleanTitle + ' systems, which strategy yields the most predictable latency and throughput?',
-      correct: 'Profiling execution bottlenecks and implementing non-blocking asynchronous operations with optimized caching',
-      distractors: [
-        'Increasing recursive call depth without base condition termination',
-        'Disabling all compiler and interpreter optimization flags',
-        'Storing all operational data in flat temporary text files without indexing'
-      ]
-    },
-    {
-      q: 'Which of the following represents a critical security risk specifically mitigated in robust ' + cleanTitle + ' implementations?',
-      correct: 'Input validation bypass, insecure deserialization, and unauthenticated access to core services',
-      distractors: [
-        'Using strict cryptographic protocols with SHA-256 or higher',
-        'Enforcing role-based access control (RBAC) across all service endpoints',
-        'Automating dependency vulnerability scanning during build cycles'
-      ]
-    },
-    {
-      q: 'In ' + cleanTitle + ', how is state consistency typically maintained across concurrent or distributed nodes?',
-      correct: 'Through distributed consensus algorithms, transactional outbox patterns, or idempotent event processing',
-      distractors: [
-        'By allowing arbitrary asynchronous writes without conflict resolution or locking',
-        'By resetting the system clock after every concurrent write',
-        'By storing state exclusively in local volatile memory registers'
-      ]
-    },
-    {
-      q: 'What is the industry best practice for handling unhandled exceptions and failovers in ' + cleanTitle + ' production environments?',
-      correct: 'Structured telemetry logging, circuit breaker patterns, and automated graceful degradation',
-      distractors: [
-        'Silently suppressing error logs and halting execution indefinitely',
-        'Terminating the hosting infrastructure immediately upon receiving a non-fatal warning',
-        'Exposing raw stack traces and internal secrets directly to end users'
-      ]
-    },
-    {
-      q: 'When conducting automated testing for ' + cleanTitle + ' applications, which layer validates end-to-end user workflows?',
-      correct: 'Comprehensive integration and end-to-end (E2E) workflow test suites simulating real production loads',
-      distractors: [
-        'Static code linting without executing any runtime test assertions',
-        'Manual random clicking without recording test outcomes or coverage metrics',
-        'Testing only deprecated functions that are no longer accessible to clients'
-      ]
-    },
-    {
-      q: 'Which metric is most crucial when benchmarking scalability and load handling in ' + cleanTitle + ' infrastructure?',
-      correct: '99th percentile (p99) response latency, throughput (requests/sec), and resource saturation',
-      distractors: [
-        'Total number of comments written in source code files',
-        'Color depth of the graphical user interface assets',
-        'Alphabetical length of database column names'
-      ]
-    },
-    {
-      q: 'In ' + cleanTitle + ', what role does asynchronous processing or decoupled messaging play in system resilience?',
-      correct: 'It absorbs traffic spikes, prevents downstream bottlenecks, and decouples producer-consumer dependencies',
-      distractors: [
-        'It guarantees that every request must wait synchronously for all background jobs',
-        'It doubles the memory consumption of every single thread',
-        'It prevents services from ever restarting in the event of an OS reboot'
-      ]
-    },
-    {
-      q: 'When refactoring legacy code in a ' + cleanTitle + ' project, which principle ensures maintainability without breaking compatibility?',
-      correct: 'Adhering to SOLID principles, versioned API contracts, and high test coverage before refactoring',
-      distractors: [
-        'Deleting all existing unit tests to speed up the refactoring process',
-        'Combining multiple unrelated business functions into a single 5,000-line function',
-        'Hardcoding database credentials directly inside the refactored modules'
-      ]
-    },
-    {
-      q: 'Which of the following accurately describes modern lifecycle management of resources in ' + cleanTitle + ' frameworks?',
-      correct: 'Deterministic allocation, automatic garbage collection/RAII, and explicit connection pooling with cleanup hooks',
-      distractors: [
-        'Opening endless file handles and database connections without ever closing them',
-        'Relying on hardware power cycling to clean up dangling system threads',
-        'Allocating unbounded memory buffers without limits or eviction policies'
-      ]
-    },
-    {
-      q: 'How does containerization (e.g. Docker) or virtualization benefit modern ' + cleanTitle + ' deployments?',
-      correct: 'Provides environment parity across development and production, isolated dependencies, and rapid scaling',
-      distractors: [
-        'Eliminates the need for writing optimized code in ' + cleanTitle,
-        'Restricts code execution strictly to a single central CPU core',
-        'Removes all network firewalls and access controls by default'
-      ]
-    },
-    {
-      q: 'What is the recommended approach for logging and telemetry monitoring in high-availability ' + cleanTitle + ' clusters?',
-      correct: 'Centralized structured JSON logs, distributed trace IDs, and real-time metric dashboards',
-      distractors: [
-        'Printing unstructured plain text messages to local console output without timestamps',
-        'Disabling all logging to save storage space on edge servers',
-        'Storing audit records in temporary browser cookies'
-      ]
-    },
-    {
-      q: 'In ' + cleanTitle + ', which design pattern is specifically suited for decoupling business logic from external data interfaces?',
-      correct: 'Repository and Dependency Inversion patterns',
-      distractors: [
-        'Singleton pattern storing raw database SQL strings globally',
-        'God Object anti-pattern managing all application concerns in one file',
-        'Tight coupling where UI components query raw hardware devices directly'
-      ]
-    },
-    {
-      q: 'How should secret credentials and sensitive configuration be managed in ' + cleanTitle + ' deployment environments?',
-      correct: 'Using encrypted secret managers, environment variables, and strict principle of least privilege',
-      distractors: [
-        'Committing production API keys and private certificates to public git repositories',
-        'Encoding passwords in base64 inside frontend client bundle code',
-        'Writing credentials in plaintext comments throughout the source files'
-      ]
-    },
-    {
-      q: 'What is the primary trade-off when choosing horizontal scaling over vertical scaling in ' + cleanTitle + ' architecture?',
-      correct: 'Horizontal scaling enhances fault tolerance and elastic capacity but introduces network overhead and distributed complexity',
-      distractors: [
-        'Horizontal scaling only works if the code is written in assembly language',
-        'Vertical scaling is completely cost-free with zero physical server constraints',
-        'Horizontal scaling guarantees that no data synchronization will ever be required'
-      ]
-    },
-    {
-      q: 'Which caching strategy is most appropriate for high-read, low-write data models in ' + cleanTitle + '?',
-      correct: 'Cache-Aside (Lazy Loading) or Read-Through caching with Time-To-Live (TTL) eviction',
-      distractors: [
-        'Disabling all memory caching and forcing every read to query cold disk storage',
-        'Writing every query response directly into non-volatile firmware',
-        'Cache without any eviction policy until server memory crashes with out-of-memory'
-      ]
-    },
-    {
-      q: 'In ' + cleanTitle + ', what mechanism is standardly used to prevent data race conditions in concurrent environments?',
-      correct: 'Mutual exclusion locks (Mutexes), atomic primitives, or software transactional memory',
-      distractors: [
-        'Running threads with random sleep intervals hoping they will not overlap',
-        'Allowing concurrent writes without synchronization or atomic boundaries',
-        'Disabling CPU multicore support across all production servers'
-      ]
-    },
-    {
-      q: 'When designing APIs or communication contracts in ' + cleanTitle + ', which standard provides the strongest type safety and schema validation?',
-      correct: 'Strict schema protocols like OpenAPI/Swagger, gRPC/Protobuf, or GraphQL with type schemas',
-      distractors: [
-        'Unstructured text strings separated by arbitrary random delimiter characters',
-        'Sending raw memory pointers across public internet HTTP connections',
-        'Relying on client-side oral agreements without written specifications'
-      ]
-    },
-    {
-      q: 'What is the long-term impact of accumulating technical debt in enterprise ' + cleanTitle + ' codebases?',
-      correct: 'Velocity slows down, bug frequency increases, and the cost of adding new features grows exponentially',
-      distractors: [
-        'Technical debt automatically refactors itself into optimized machine instructions',
-        'Developer productivity increases proportionally with undocumented hacks',
-        'System throughput improves as architectural constraints are discarded'
-      ]
-    },
-    {
-      q: 'Which Continuous Integration (CI) practice best ensures code quality before merging in ' + cleanTitle + ' teams?',
-      correct: 'Automated pipelines executing linting, unit/integration tests, security scanning, and requiring peer reviews',
-      distractors: [
-        'Directly pushing untested modifications straight to the production master branch',
-        'Disabling branch protection rules and skipping build verification steps',
-        'Testing only in local developer machines without continuous shared integration'
-      ]
-    },
-    {
-      q: 'In ' + cleanTitle + ', how is graceful degradation achieved during downstream third-party service outages?',
-      correct: 'Serving cached fallback data, queueing outgoing events, and maintaining critical primary functionality',
-      distractors: [
-        'Crashing the entire user application with a fatal white screen error',
-        'Infinitely retrying failing requests at microsecond intervals to overload the service',
-        'Corrupting local configuration files to prevent the system from starting again'
-      ]
-    },
-    {
-      q: 'What is the key advantage of reactive event-driven patterns compared to synchronous blocking in ' + cleanTitle + '?',
-      correct: 'Higher resource utilization and scalability by not tying up OS threads while waiting for I/O',
-      distractors: [
-        'Reactive programming completely eliminates the need for computer RAM',
-        'Synchronous blocking enables infinite concurrency with zero thread stack overhead',
-        'Event-driven patterns ensure that code will never have logical runtime defects'
-      ]
-    },
-    {
-      q: 'When profiling memory bottlenecks in ' + cleanTitle + ' applications, what is a frequent cause of persistent leaks?',
-      correct: 'Dangling event listeners, unevicted global caches, and unclosed connection handles',
-      distractors: [
-        'Using strongly typed immutable variables throughout the codebase',
-        'Employing small, pure functions that allocate and immediately discard local scope',
-        'Validating user input before storing it in transactional records'
-      ]
-    },
-    {
-      q: 'Which data protection principle is mandatory when processing sensitive user information in ' + cleanTitle + '?',
-      correct: 'End-to-end encryption in transit (TLS) and at rest, data minimization, and audit logging',
-      distractors: [
-        'Broadcasting user data across unencrypted public WebSocket channels',
-        'Storing user credentials in plain text log files for debugging convenience',
-        'Granting read access to all internal records to anonymous guest requests'
-      ]
-    },
-    {
-      q: 'In ' + cleanTitle + ', how do idempotent operations contribute to reliable transaction processing?',
-      correct: 'They ensure that executing the same operation multiple times produces the exact same outcome without side-effects',
-      distractors: [
-        'They guarantee that every repeated request creates a duplicate database entry',
-        'They double the fee charged for each subsequent network transmission',
-        'They randomly alter the state each time an operation is triggered'
-      ]
-    },
-    {
-      q: 'What role does Dependency Injection (DI) play in enhancing testability for ' + cleanTitle + ' systems?',
-      correct: 'Allows dependencies to be easily replaced with mock or stub implementations during automated testing',
-      distractors: [
-        'Hardwires deep hardware dependencies into every single class constructor',
-        'Prevents developers from writing any modular unit tests',
-        'Forces the entire test suite to run against live production databases'
-      ]
-    },
-    {
-      q: 'When orchestrating distributed microservices in ' + cleanTitle + ', which pattern manages multi-step distributed transactions?',
-      correct: 'The Saga Pattern (orchestrated or choreographed) with compensating rollback transactions',
-      distractors: [
-        'Two-phase commits holding indefinite distributed database locks across public WAN',
-        'Ignoring partial failures and assuming every network call always succeeds',
-        'Writing transactions to browser localStorage and waiting for client sync'
-      ]
-    },
-    {
-      q: 'Which strategy best minimizes downtime during continuous delivery deployments in ' + cleanTitle + '?',
-      correct: 'Blue-Green or Canary deployment with automated health checks and instant rollback capabilities',
-      distractors: [
-        'Terminating all active customer sessions simultaneously before starting a manual update',
-        'Overwriting running production binaries in-place during peak user traffic hours',
-        'Deleting all historical deployment artifacts so rollbacks are impossible'
-      ]
-    },
-    {
-      q: 'In ' + cleanTitle + ', how are rate limiting and circuit breaking employed to safeguard core service integrity?',
-      correct: 'By throttling abusive traffic volumes and fast-failing requests when a dependency exceeds error thresholds',
-      distractors: [
-        'By accepting infinite concurrent connections until the server CPU overheats',
-        'By blocking legitimate authenticated users while allowing malicious scraping',
-        'By restarting the physical network switch every time an error code 400 is seen'
-      ]
-    },
-    {
-      q: 'What constitutes the ultimate benchmark of engineering excellence and operational readiness in production ' + cleanTitle + '?',
-      correct: 'High availability (99.9%+), resilient fault tolerance, secure architecture, and seamless developer ergonomics',
-      distractors: [
-        'Having the maximum number of dependencies installed in package.json',
-        'Writing code that is so deeply obfuscated that no other engineer can comprehend it',
-        'Deploying updates only once every five years to avoid any change'
-      ]
-    }
-  ];
+  const isSoftware = /computer|software|programming|python|java|web|frontend|backend|react|javascript|c\+\+|dsa|data science|ai|machine learning|cloud|devops|cybersecurity/i.test(cleanLower);
+  const isEngineering = /engineering|mechanic|civil|marine|petroleum|nuclear|aero|fluid|material|thermal|structural|electrical|chemical|metallurgy|mining|automotive|robotics/i.test(cleanLower);
+  const isDesignCreative = /design|fashion|interior|graphic|art|film|multimedia|animation|architecture|visual|media|sound|music|production/i.test(cleanLower);
+  const isBusinessManagement = /management|business|finance|marketing|hr|commerce|accounting|sales|supply|logistics|operations|mba/i.test(cleanLower);
+
+  let templates = [];
+
+  if (isEngineering) {
+    templates = [
+      {
+        q: 'In ' + cleanTitle + ', what is the primary engineering significance of calculating the Factor of Safety (FOS) relative to material yield strength?',
+        correct: 'Ensures the structure or component operates safely under maximum expected loads without experiencing permanent plastic deformation or failure',
+        distractors: [
+          'Guarantees that material mass will double under continuous dynamic loading',
+          'Allows all quality control testing and regulatory inspections to be eliminated',
+          'Forces the system to operate at 100% mechanical efficiency with zero thermal loss'
+        ]
+      },
+      {
+        q: 'In ' + cleanTitle + ' systems, which conservation law dictates that the total mass entering a steady-state control volume must equal the total mass leaving?',
+        correct: 'Conservation of Mass (Continuity Equation)',
+        distractors: [
+          'Bernoulli\'s Frictionless Surface Hypothesis',
+          'Newton\'s Gravitational Inverse-Square Principle',
+          'Hooke\'s Modulus of Elastic Deflection'
+        ]
+      },
+      {
+        q: 'When conducting Failure Mode and Effects Analysis (FMEA) for ' + cleanTitle + ' components, what does the Risk Priority Number (RPN) represent?',
+        correct: 'The mathematical product of Severity, Occurrence probability, and Detection rating (RPN = S x O x D)',
+        distractors: [
+          'The total financial cost of scrapping the production line',
+          'The ratio of shear stress to thermal expansion coefficient',
+          'The operating hours remaining before preventative lubrication is scheduled'
+        ]
+      },
+      {
+        q: 'In ' + cleanTitle + ', what nondestructive testing (NDT) method is standardly used to detect surface-breaking hairline fractures in non-porous materials?',
+        correct: 'Liquid penetrant inspection (Dye penetrant testing)',
+        distractors: [
+          'Destructive Charpy V-notch impact fracturing',
+          'High-voltage electrical arcing across open atmosphere',
+          'Submerging the entire assembly in concentrated hydrochloric acid'
+        ]
+      },
+      {
+        q: 'What role does Geometric Dimensioning and Tolerancing (GD&T) per ASME Y14.5 play in ' + cleanTitle + ' manufacturing drawings?',
+        correct: 'Specifies allowable variations in form, orientation, profile, and location to ensure interchangeable assembly fit',
+        distractors: [
+          'Restricts all parts to identical arbitrary outer diameters regardless of function',
+          'Converts imperial engineering units into optical wavelength ratings',
+          'Eliminates the necessity for quality inspection calipers and CMM probes'
+        ]
+      },
+      {
+        q: 'In ' + cleanTitle + ', how does work hardening (strain hardening) affect the mechanical properties of a metallic material?',
+        correct: 'Increases yield strength and hardness while reducing ductility through dislocation entanglement',
+        distractors: [
+          'Decreases tensile strength while increasing electrical resistivity to zero',
+          'Causes the material to melt at room temperature without external heat',
+          'Transforms crystalline grains permanently into an amorphous liquid state'
+        ]
+      },
+      {
+        q: 'When designing dynamic equipment in ' + cleanTitle + ', what condition occurs when operating excitation frequency matches the system natural frequency?',
+        correct: 'Mechanical resonance, resulting in severe amplitude magnification and catastrophic structural vibration',
+        distractors: [
+          'Hydrodynamic cavitation where static pressure exceeds critical boiling point',
+          'Instantaneous thermal equilibrium where all heat dissipation ceases',
+          'Complete cancellation of all inertial forces and zero mechanical stress'
+        ]
+      },
+      {
+        q: 'In ' + cleanTitle + ', what is the primary function of performing a Finite Element Analysis (FEA) mesh convergence study?',
+        correct: 'To ensure that stress and deflection calculation results become independent of mesh element size',
+        distractors: [
+          'To reduce computer memory usage by deleting all geometrical boundary conditions',
+          'To invert the matrix equations so all output values become positive integers',
+          'To bypass the need for physical material properties like Young\'s modulus'
+        ]
+      },
+      {
+        q: 'Which international standard outlines the general quality and calibration requirements for testing laboratories in ' + cleanTitle + '?',
+        correct: 'ISO/IEC 17025',
+        distractors: [
+          'ISO 14001 Environmental Management framework',
+          'OHSAS 18001 Occupational Safety standard',
+          'ISO 27001 Information Security Management code'
+        ]
+      },
+      {
+        q: 'In ' + cleanTitle + ', what is the key principle of predictive condition-based maintenance compared to reactive breakdown maintenance?',
+        correct: 'Monitoring real-time vibration, thermal imaging, and oil analysis to schedule repairs before unexpected breakdown',
+        distractors: [
+          'Operating equipment continuously until catastrophic structural failure occurs',
+          'Replacing all machinery components daily regardless of condition or cost',
+          'Disabling all safety emergency shutoff switches to maintain production speed'
+        ]
+      }
+    ];
+  } else if (isDesignCreative) {
+    templates = [
+      {
+        q: 'In ' + cleanTitle + ', what design principle establishes visual equilibrium and weight distribution across a composition or space?',
+        correct: 'Balance (symmetrical, asymmetrical, or radial)',
+        distractors: [
+          'Linear extrusion along arbitrary orthogonal coordinate axes',
+          'Randomization of scale without visual hierarchy',
+          'Complete monochromatic saturation across all surfaces'
+        ]
+      },
+      {
+        q: 'In professional ' + cleanTitle + ', what does the term "visual hierarchy" dictate regarding user perception?',
+        correct: 'The intentional arrangement of elements to guide the viewer\'s eye to the most important focal point first',
+        distractors: [
+          'Giving every single element identical size, contrast, and prominence',
+          'Hiding key information behind decorative ornamentation',
+          'Arranging visual assets strictly in alphabetical order'
+        ]
+      },
+      {
+        q: 'In the color theory of ' + cleanTitle + ', what visual effect is achieved by pairing complementary colors on the color wheel?',
+        correct: 'Maximum chromatic contrast and vibrant visual energy when placed side-by-side',
+        distractors: [
+          'Complete neutralization of all visual contrast into muddy gray',
+          'Elimination of all light reflection from the surface',
+          'Total destruction of material surface integrity'
+        ]
+      },
+      {
+        q: 'In ' + cleanTitle + ', how does scale and proportion influence human spatial and aesthetic experience?',
+        correct: 'Relates physical and visual dimensions harmoniously to the human body and contextual environment',
+        distractors: [
+          'Enforces microscopic dimensions on all functional components',
+          'Prevents any dimensional variation across different product iterations',
+          'Requires all objects to adhere strictly to integer millimeter increments'
+        ]
+      },
+      {
+        q: 'What is the primary objective of creating iterative prototypes and proof-of-concept models in ' + cleanTitle + '?',
+        correct: 'To validate form, ergonomics, functional performance, and material suitability before full production',
+        distractors: [
+          'To generate finalized marketing sales packaging before design begins',
+          'To eliminate the need for any client feedback or design reviews',
+          'To permanently fix the design without possibility of modification'
+        ]
+      }
+    ];
+  } else if (isBusinessManagement) {
+    templates = [
+      {
+        q: 'In ' + cleanTitle + ', what financial metric evaluates the profitability of an investment by calculating the ratio of net gain to initial cost?',
+        correct: 'Return on Investment (ROI)',
+        distractors: [
+          'Gross Operating Expense Ratio (GOER)',
+          'Static Liquidity Amortization Index',
+          'Total Book Value Depreciation Factor'
+        ]
+      },
+      {
+        q: 'In strategic ' + cleanTitle + ', what is the primary purpose of conducting a SWOT analysis?',
+        correct: 'To identify internal Strengths and Weaknesses alongside external Opportunities and Threats',
+        distractors: [
+          'To calculate federal corporate tax liability for quarterly filing',
+          'To audit daily employee timecard punch clock stamps',
+          'To benchmark warehouse inventory pallet stacking limits'
+        ]
+      },
+      {
+        q: 'In operational ' + cleanTitle + ', what management philosophy focuses on eliminating waste (Muda) and continuous improvement (Kaizen)?',
+        correct: 'Lean Management',
+        distractors: [
+          'Chaotic Task Scheduling without prioritization',
+          'Unconstrained Inventory Hoarding methodology',
+          'Zero-Documentation ad-hoc operational policy'
+        ]
+      },
+      {
+        q: 'In ' + cleanTitle + ', what key performance indicator (KPI) measures the average cost incurred to acquire one paying customer?',
+        correct: 'Customer Acquisition Cost (CAC)',
+        distractors: [
+          'Customer Lifetime Valuation (LTV)',
+          'Net Promoter Score (NPS)',
+          'Monthly Recurring Revenue (MRR)'
+        ]
+      }
+    ];
+  } else {
+    templates = [
+      {
+        q: 'In professional ' + cleanTitle + ' practice, what is the primary purpose of conducting systematic peer review and technical auditing?',
+        correct: 'To verify compliance with established industry standards, validate methodologies, and ensure quality outcomes',
+        distractors: [
+          'To delay operational project timelines indefinitely without evaluation',
+          'To replace all technical calculations with unverified assumptions',
+          'To conceal methodological defects from regulatory oversight'
+        ]
+      },
+      {
+        q: 'In ' + cleanTitle + ', how is risk mitigation effectively prioritized during project execution?',
+        correct: 'By assessing the likelihood of occurrence against the potential impact severity to focus resources on critical hazards',
+        distractors: [
+          'By addressing only the easiest low-impact concerns while ignoring critical risks',
+          'By assuming that unforeseen events will resolve themselves spontaneously',
+          'By transferring all liability verbally without written documentation'
+        ]
+      },
+      {
+        q: 'What benchmark defines professional excellence and operational integrity in ' + cleanTitle + '?',
+        correct: 'High reliability, adherence to ethical codes of conduct, continuous verification, and evidence-based methodologies',
+        distractors: [
+          'Executing tasks with maximum speed regardless of safety or precision',
+          'Working in total isolation without reference to recognized standards',
+          'Discarding all historical data and performance metrics'
+        ]
+      }
+    ];
+  }
+
+  // Ensure at least targetCount items
+  const initialCount = Math.max(1, templates.length);
+  while (templates.length < targetCount) {
+    const base = templates[templates.length % initialCount];
+    if (!base) break;
+    templates.push({
+      q: 'Advanced ' + cleanTitle + ' Application: ' + base.q,
+      correct: base.correct,
+      distractors: base.distractors
+    });
+  }
 
   return templates.slice(0, targetCount).map((item, idx) => {
     const opts = [item.correct, ...item.distractors.slice(0, 3)];
@@ -5252,21 +8088,48 @@ function shuffle(array) {
 // In-memory cache of generated dynamic questions to ensure accurate server grading
 const dynamicQuestionCache = new Map();
 
-function getDomainQuestions(domainSlug, targetCount = 30) {
-  const cleanSlug = (domainSlug || '').toLowerCase().trim();
+function getDomainQuestions(domainSlug, targetCount = 30, domainName = null) {
+  let cleanSlug = (domainSlug || '').toLowerCase().trim();
+  const normalizedDomainName = (domainName || '').toLowerCase().trim();
+  const domainNameToSlug = normalizedDomainName.replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+  if ((cleanSlug === 'others' || cleanSlug === 'custom-topic' || cleanSlug === 'custom' || cleanSlug === 'other' || !cleanSlug) && domainNameToSlug) {
+    cleanSlug = domainNameToSlug;
+  }
   
-  // 1. Check alias map or existing domain questions
-  let resolvedKey = ALIAS_MAP[cleanSlug] || Object.keys(DOMAIN_QUESTIONS).find(k => cleanSlug.includes(k) || k.includes(cleanSlug));
+  // 1. Check alias map
+  let resolvedKey = ALIAS_MAP[cleanSlug];
+  if (!resolvedKey && domainNameToSlug) {
+    resolvedKey = ALIAS_MAP[domainNameToSlug];
+  }
+  if (!resolvedKey && normalizedDomainName) {
+    resolvedKey = ALIAS_MAP[normalizedDomainName];
+  }
+
+  // 2. Direct key match in DOMAIN_QUESTIONS
+  if (!resolvedKey) {
+    if (DOMAIN_QUESTIONS[cleanSlug]) {
+      resolvedKey = cleanSlug;
+    } else if (domainNameToSlug && DOMAIN_QUESTIONS[domainNameToSlug]) {
+      resolvedKey = domainNameToSlug;
+    }
+  }
+
+  // 3. Fallback to exact key matching without token substring bleed
+  if (!resolvedKey) {
+    resolvedKey = Object.keys(DOMAIN_QUESTIONS).find(k => {
+      if (k === cleanSlug || (domainNameToSlug && k === domainNameToSlug)) return true;
+      return false;
+    });
+  }
   
   let rawList = null;
 
   if (resolvedKey && DOMAIN_QUESTIONS[resolvedKey]) {
     rawList = DOMAIN_QUESTIONS[resolvedKey];
   } else {
-    // Dynamic generation for ANY arbitrary custom domain entered by user!
     resolvedKey = cleanSlug || 'custom-domain';
-    const domainTitle = cleanSlug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-    rawList = synthesizeDomainQuestions(domainTitle, cleanSlug, 30);
+    rawList = synthesizeDomainQuestions(domainName || cleanSlug, cleanSlug, targetCount || 30);
   }
 
   // 1. Randomly shuffle the questions for this domain
@@ -5315,10 +8178,18 @@ function checkCorrectAnswer(questionId, optionId) {
   return false;
 }
 
+function cacheCorrectAnswer(questionId, correctOptionId) {
+  if (questionId && correctOptionId) {
+    dynamicQuestionCache.set(questionId, correctOptionId);
+  }
+}
+
 module.exports = {
   DOMAIN_QUESTIONS,
   ALIAS_MAP,
   getDomainQuestions,
   checkCorrectAnswer,
+  cacheCorrectAnswer,
+  dynamicQuestionCache,
   synthesizeDomainQuestions
 };

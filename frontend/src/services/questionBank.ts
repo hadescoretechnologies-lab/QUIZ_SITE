@@ -13908,24 +13908,23 @@ export function getDomainQuestions(
   if (resolvedKey && DOMAIN_QUESTIONS[resolvedKey]) {
     rawList = DOMAIN_QUESTIONS[resolvedKey];
   } else {
-    // Generate questions for ANY arbitrary custom domain entered under "Others"
+    // Dynamic generation for ANY arbitrary custom domain entered by user - INSTANT (<1ms)!
     resolvedKey = cleanSlug || 'custom-domain';
-    const displayTitle = domainName && domainName.trim()
-      ? domainName.trim()
-      : cleanSlug.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
-    
-    const generated = synthesizeDomainQuestions(displayTitle, cleanSlug, 30);
-    rawList = generated.map((item: any, idx: number) => ({
-      id: `${cleanSlug}-${idx + 1}`,
-      question_text: item.q,
-      difficulty: idx < 10 ? 'easy' : idx < 20 ? 'medium' : 'hard',
-      marks: 1,
-      options: item.opts.map((optText: string, oIdx: number) => ({
-        id: `${cleanSlug}-${idx + 1}-${String.fromCharCode(97 + oIdx)}`,
-        option_text: optText,
-        is_correct: oIdx === item.ans
-      }))
-    }));
+    const synthesized = synthesizeDomainQuestions(domainName || cleanSlug, cleanSlug, targetCount || 30);
+    rawList = synthesized.map((item: any, sIdx: number) => {
+      const qId = `${resolvedKey}-${sIdx + 1}`;
+      return {
+        id: qId,
+        question_text: item.q,
+        difficulty: sIdx < 10 ? 'easy' : sIdx < 20 ? 'medium' : 'hard',
+        marks: 1,
+        options: item.opts.map((optText: string, oIdx: number) => ({
+          id: `${qId}-opt-${String.fromCharCode(97 + oIdx)}`,
+          option_text: optText,
+          is_correct: oIdx === item.ans,
+        })),
+      };
+    });
   }
 
   // 1. Shuffling of questions for the selected domain

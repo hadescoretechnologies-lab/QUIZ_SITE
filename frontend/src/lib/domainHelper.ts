@@ -41,24 +41,30 @@ export function getDomainIcon(domainOrBranch?: string | null): string {
  * Returns formatted domain name and icon for a student.
  * Never outputs a generic 'General Assessment' when user specified a domain (like Civil, Mech, etc.)!
  */
-export function getStudentDomainDisplay(student?: Partial<Student> & { campaign_code?: string; branch?: string } | null): { name: string; icon: string } {
+export function getStudentDomainDisplay(
+  student?: Partial<Student> & {
+    campaign_code?: string;
+    branch?: string;
+    preferred_domain_name?: string;
+  } | null
+): { name: string; icon: string } {
   if (!student) {
     return { name: 'Technical Assessment', icon: '⚡' };
   }
 
-  // 1. Explicit domain name attached to student
-  const pName = student.preferred_domain?.name?.trim();
-  if (pName && pName !== 'General Assessment' && pName !== 'General Tech' && pName !== 'General') {
+  // 1. Explicit domain name attached to student (from domains table or custom input)
+  const pName = student.preferred_domain?.name?.trim() || (student as any).preferred_domain_name?.trim();
+  if (pName && pName !== 'General Assessment' && pName !== 'General Tech' && pName !== 'General' && pName.toLowerCase() !== 'others') {
     return {
       name: pName,
       icon: student.preferred_domain?.icon || getDomainIcon(pName),
     };
   }
 
-  // 2. Extracted from campaign_code (which stores "domain:Civil Engineering" or "domain:Civil")
+  // 2. Extracted from campaign_code (which stores "domain:<Custom Domain Name>" e.g. "domain:Car Design")
   if (student.campaign_code && student.campaign_code.startsWith('domain:')) {
     const rawCustom = student.campaign_code.replace('domain:', '').trim();
-    if (rawCustom) {
+    if (rawCustom && rawCustom.toLowerCase() !== 'others') {
       return {
         name: rawCustom,
         icon: getDomainIcon(rawCustom),
@@ -68,7 +74,7 @@ export function getStudentDomainDisplay(student?: Partial<Student> & { campaign_
 
   // 3. Extracted from preferred_domain_id / slug
   const pId = student.preferred_domain_id || student.preferred_domain?.id || student.preferred_domain?.slug;
-  if (pId && pId !== 'custom') {
+  if (pId && pId !== 'custom' && pId.toLowerCase() !== 'others') {
     const matched = TECH_DOMAINS.find(
       (d) => d.id === pId || d.slug === pId || pId.toLowerCase().includes(d.slug.toLowerCase())
     );
@@ -91,25 +97,20 @@ export function getStudentDomainDisplay(student?: Partial<Student> & { campaign_
       .replace(/^d0000000-0000-0000-0000-000000000011$/, 'C / C++ Programming')
       .replace(/^d0000000-0000-0000-0000-000000000012$/, 'Business Management');
 
-    if (!formatted.startsWith('d0000000') && !formatted.includes('-')) {
-      return {
-        name: formatted,
-        icon: getDomainIcon(formatted),
-      };
+    if (!formatted.startsWith('d0000000') && !formatted.startsWith('dyn-')) {
+      const cleanName = formatted.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+      if (cleanName.toLowerCase() !== 'others') {
+        return {
+          name: cleanName,
+          icon: getDomainIcon(cleanName),
+        };
+      }
     }
   }
 
-  // 4. Fallback to candidate's branch (e.g. "Civil Engineering", "Mechanical", "Computer Science")
-  if (student.branch && student.branch.trim()) {
-    const branchName = student.branch.trim();
-    return {
-      name: branchName,
-      icon: getDomainIcon(branchName),
-    };
-  }
-
+  // NOTE: NEVER fall back to candidate's college branch! Branch is degree/course, NOT registered domain.
   return {
-    name: 'Technical Assessment',
+    name: 'Custom Domain',
     icon: '⚡',
   };
 }

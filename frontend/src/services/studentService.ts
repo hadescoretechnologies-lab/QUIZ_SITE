@@ -170,6 +170,21 @@ export function saveLocalStudent(data: StudentRegistrationData): { student: Stud
       academic_year: data.academic_year || students[existingIdx].academic_year,
       state: data.state || students[existingIdx].state,
       preferred_domain_id: data.preferred_domain_id || students[existingIdx].preferred_domain_id,
+      campaign_code: data.campaign_code || (data.preferred_domain_name ? `domain:${data.preferred_domain_name}` : students[existingIdx].campaign_code),
+      preferred_domain: {
+        id: data.preferred_domain_id || 'custom',
+        name: data.preferred_domain_name || students[existingIdx].preferred_domain?.name || 'Custom Domain',
+        slug: (data.preferred_domain_name || 'custom-domain').toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        icon: getDomainIcon(data.preferred_domain_name || 'Custom Domain'),
+        color: '#06b6d4',
+        difficulty: 'intermediate',
+        question_count: 30,
+        estimated_minutes: 15,
+        active: true,
+        display_order: 1,
+        created_at: '',
+        updated_at: '',
+      },
       updated_at: new Date().toISOString(),
     };
     students[existingIdx] = updated;
@@ -179,9 +194,11 @@ export function saveLocalStudent(data: StudentRegistrationData): { student: Stud
     return { student: updated, isNew: false };
   }
 
-  const domainTitle = data.preferred_domain_name || (data.preferred_domain_id
-    ? data.preferred_domain_id.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
-    : (data.branch || 'Technical Assessment'));
+  const domainTitle = (data.preferred_domain_name && data.preferred_domain_name.toLowerCase() !== 'others')
+    ? data.preferred_domain_name
+    : (data.preferred_domain_id && data.preferred_domain_id !== 'custom' && data.preferred_domain_id.toLowerCase() !== 'others'
+        ? data.preferred_domain_id.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+        : 'Custom Domain');
 
   const newStudent: Student = {
     id: 'student-' + Date.now(),
@@ -359,14 +376,18 @@ export function resolveDomainUuid(domainIdOrSlug?: string | null): string | null
     'mechanical': 'd0000000-0000-0000-0000-000000000015',
     'mech-eng': 'd0000000-0000-0000-0000-000000000015',
     'mechanical-engineering': 'd0000000-0000-0000-0000-000000000015',
+    'iot': 'd0000000-0000-0000-0000-000000000016',
+    'iot-embedded': 'd0000000-0000-0000-0000-000000000016',
+    'internet-of-things': 'd0000000-0000-0000-0000-000000000016',
+    'embedded-systems': 'd0000000-0000-0000-0000-000000000016',
   };
 
   const key = domainIdOrSlug.toLowerCase().trim();
   if (slugMap[key]) return slugMap[key];
 
-  // Match substring if available
+  // Match token or word boundary only - never match substring false-positives like 'iot' in 'biotechnology'
   for (const [k, uuid] of Object.entries(slugMap)) {
-    if (key.includes(k) || k.includes(key)) {
+    if (k.split('-').includes(key) || key.split('-').includes(k)) {
       return uuid;
     }
   }
@@ -444,7 +465,8 @@ export async function createOrGetStudent(
           branch: data.branch || existing.branch,
           academic_year: data.academic_year || existing.academic_year,
           state: data.state || existing.state,
-          preferred_domain_id: resolvedDomainId || existing.preferred_domain_id,
+          preferred_domain_id: resolvedDomainId,
+          campaign_code: data.campaign_code || (data.preferred_domain_name ? `domain:${data.preferred_domain_name}` : existing.campaign_code),
           updated_at: new Date().toISOString(),
         })
         .eq('id', existing.id)

@@ -10,6 +10,10 @@ import {
   UserCheck,
   Clock,
   Award,
+  Sparkles,
+  Cpu,
+  Key,
+  AlertCircle,
 } from 'lucide-react';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { Button } from '@/components/ui/button';
@@ -20,6 +24,7 @@ import supabase, { isSupabaseConfigured } from '@/lib/supabase';
 import {
   fetchQuizConfig,
   saveQuizConfig,
+  testGeminiApiKey,
   type QuizEngineConfig,
 } from '@/services/quizService';
 
@@ -29,6 +34,13 @@ export default function AdminSettingsPage() {
   const [passingQuestionsStr, setPassingQuestionsStr] = useState<string>('5');
   const [quizTimerStr, setQuizTimerStr] = useState<string>('15');
   const [maxAttemptsStr, setMaxAttemptsStr] = useState<string>('1');
+
+  // Gemini AI Engine & API Key
+  const [geminiKeyStr, setGeminiKeyStr] = useState<string>('');
+  const [maskedKeyStr, setMaskedKeyStr] = useState<string>('');
+  const [showGeminiKey, setShowGeminiKey] = useState<boolean>(false);
+  const [testingGemini, setTestingGemini] = useState<boolean>(false);
+  const [testResult, setTestResult] = useState<{ success: boolean; model?: string; message?: string; error?: string } | null>(null);
 
   // Admin Account & Password Change
   const [currentPassword, setCurrentPassword] = useState('');
@@ -51,6 +63,12 @@ export default function AdminSettingsPage() {
           setPassingQuestionsStr(String(pCount));
           setQuizTimerStr(String(conf.quiz_timer_minutes || 15));
           setMaxAttemptsStr(String(conf.max_attempts || 1));
+          if (conf.gemini_api_key_masked) {
+            setMaskedKeyStr(conf.gemini_api_key_masked);
+          }
+          if (conf.gemini_api_key) {
+            setGeminiKeyStr(conf.gemini_api_key);
+          }
         }
       } catch (err) {
         console.warn('Config load note:', err);
@@ -67,6 +85,38 @@ export default function AdminSettingsPage() {
   const parsedTimerMinutes = Math.max(1, Math.min(180, parseInt(quizTimerStr, 10) || 15));
   const parsedMaxAttempts = Math.max(1, Math.min(50, parseInt(maxAttemptsStr, 10) || 1));
   const currentPassingPercentage = Math.round((parsedPassingCount / parsedQuestionsCount) * 100);
+
+  const handleTestGemini = async () => {
+    setTestingGemini(true);
+    setTestResult(null);
+    try {
+      const keyToTest = geminiKeyStr.trim() || undefined;
+      const res = await testGeminiApiKey(keyToTest);
+      setTestResult(res);
+      if (res.success) {
+        toast({
+          title: 'Gemini AI Operational 🟢',
+          description: res.message || 'API key validated successfully with Google Gemini.',
+          variant: 'success',
+        });
+      } else {
+        toast({
+          title: 'Gemini Test Failed 🔴',
+          description: res.error || 'Invalid API key or network error.',
+          variant: 'destructive',
+        });
+      }
+    } catch (err: any) {
+      setTestResult({ success: false, error: err.message });
+      toast({
+        title: 'Gemini Test Error',
+        description: err.message || 'Failed to communicate with test endpoint.',
+        variant: 'destructive',
+      });
+    } finally {
+      setTestingGemini(false);
+    }
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -89,9 +139,14 @@ export default function AdminSettingsPage() {
         passing_percentage: calculatedPercentage,
         quiz_timer_minutes: timerMins,
         max_attempts: attemptsLimit,
+        ...(geminiKeyStr.trim() ? { gemini_api_key: geminiKeyStr.trim() } : {}),
       };
 
       await saveQuizConfig(payload);
+
+      if (geminiKeyStr.trim()) {
+        setMaskedKeyStr(`••••••••••••${geminiKeyStr.trim().slice(-4)}`);
+      }
 
       toast({
         title: 'Settings Saved & Synced Globally',
@@ -309,7 +364,142 @@ export default function AdminSettingsPage() {
           </div>
         </div>
 
-        {/* 2. SECTION 2: ADMIN ACCOUNT SECURITY & PASSWORD CHANGE */}
+        {/* SECTION 2: GOOGLE GEMINI AI & AUTO-GENERATION ENGINE */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_1px_3px_0_rgba(0,0,0,0.02)] overflow-hidden">
+          <div className="p-5 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-violet-50 border border-violet-200/80 flex items-center justify-center text-violet-600 shrink-0">
+                <Sparkles className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-slate-900 text-sm">Google Gemini AI & Auto-Generation Engine</h3>
+                </div>
+                <p className="text-xs text-slate-400">Configure AI model connectivity, background refills, and custom domain question synthesis</p>
+              </div>
+            </div>
+
+            <div>
+              {maskedKeyStr || geminiKeyStr.trim() ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Gemini AI Active
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                  Dynamic Fallback Active
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="p-5 sm:p-6 space-y-5 text-xs">
+            {/* API Key Input and Test Action */}
+            <div className="space-y-2">
+              <Label className="text-slate-700 font-semibold flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <Key className="w-3.5 h-3.5 text-violet-500" />
+                  Google Gemini API Key
+                </span>
+                {maskedKeyStr && (
+                  <span className="text-[11px] text-slate-400 font-normal">
+                    Configured: <code className="text-violet-600 font-mono font-semibold">{maskedKeyStr}</code>
+                  </span>
+                )}
+              </Label>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <div className="relative flex-1">
+                  <Input
+                    type={showGeminiKey ? 'text' : 'password'}
+                    placeholder={maskedKeyStr ? 'Enter new key to replace existing' : 'Enter Google Gemini API Key (AIzaSy...)'}
+                    value={geminiKeyStr}
+                    onChange={(e) => setGeminiKeyStr(e.target.value)}
+                    className="rounded-xl border-slate-200 h-10 text-xs font-mono pr-10 focus-visible:border-violet-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowGeminiKey(!showGeminiKey)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    {showGeminiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                <Button
+                  type="button"
+                  onClick={handleTestGemini}
+                  disabled={testingGemini}
+                  className="bg-violet-600 hover:bg-violet-700 text-white rounded-xl gap-2 h-10 px-4 text-xs font-semibold shrink-0"
+                >
+                  {testingGemini ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Cpu className="w-3.5 h-3.5" />}
+                  Test Connection
+                </Button>
+              </div>
+              <p className="text-[11px] text-slate-400 leading-tight">
+                Used to generate 30 high-rigor domain questions with detailed explanations. Leave blank to use our built-in dynamic engineering generator.
+              </p>
+            </div>
+
+            {/* Live Test Results Alert */}
+            {testResult && (
+              <div className={`p-3.5 rounded-xl border flex items-start gap-2.5 ${
+                testResult.success
+                  ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900'
+                  : 'bg-rose-50/80 border-rose-200 text-rose-900'
+              }`}>
+                {testResult.success ? (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                ) : (
+                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                )}
+                <div className="space-y-0.5">
+                  <div className="font-semibold text-xs">
+                    {testResult.success ? 'Gemini AI Connectivity Verified' : 'Gemini AI Connection Failed'}
+                  </div>
+                  <div className="text-[11px] opacity-90">
+                    {testResult.message || testResult.error}
+                    {testResult.model && ` (Model: ${testResult.model})`}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Architecture Explanatory Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                <div className="font-semibold text-slate-800 text-xs flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-blue-500" />
+                  Autonomous Refill
+                </div>
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  Scheduled job runs every 15 minutes. If any domain falls below 30 questions, questions are generated automatically.
+                </p>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                <div className="font-semibold text-slate-800 text-xs flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  Zero-Downtime Fallback
+                </div>
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  If the Gemini API key is unset or hits Google rate limits, our built-in technical synthesizer provides 30 questions instantly without errors.
+                </p>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                <div className="font-semibold text-slate-800 text-xs flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-violet-500" />
+                  Any Custom Domain
+                </div>
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  When candidates type custom domains (like "IoT", "Robotics", "Embedded"), questions are generated exclusively for that topic.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 3. SECTION 3: ADMIN ACCOUNT SECURITY & PASSWORD CHANGE */}
         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_1px_3px_0_rgba(0,0,0,0.02)] overflow-hidden">
           <div className="p-5 sm:p-6 border-b border-slate-100 flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-center text-slate-700 shrink-0">
