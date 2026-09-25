@@ -1,11 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
 import {
-  CheckCircle2, Clock,
-  Loader2,
-  Sparkles, ArrowRight
+  Check, CheckCircle2, Clock, Video, Play, ArrowRight,
+  Users, Laptop, GraduationCap, TrendingUp, Rocket,
+  FileText, Award, Loader2, Sparkles, Mic, Share2, Briefcase
 } from 'lucide-react';
-import { getQuizResult, getStoredQuizConfig } from '@/services/quizService';
+import {
+  getQuizResult,
+  getStoredQuizConfig,
+  fetchQuizConfig,
+  computeWebinarSchedule,
+  type QuizEngineConfig,
+  type WebinarSchedule,
+} from '@/services/quizService';
 import { getBootcampForDomain, registerForBootcamp } from '@/services/bootcampService';
 import { trackLeadActivity } from '@/services/leadService';
 import { getPersistedStudentId } from '@/lib/analytics';
@@ -16,6 +23,20 @@ import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/useToast';
 import { getDomainIconPath } from '@/lib/domainIcons';
 import type { QuizResult, SkillLevel, Bootcamp } from '@/types';
+
+function WhatsAppIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-label="WhatsApp"
+    >
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+    </svg>
+  );
+}
 
 export default function ResultPage() {
   const { attemptId } = useParams<{ attemptId: string }>();
@@ -28,6 +49,12 @@ export default function ResultPage() {
   const [bootcamp, setBootcamp] = useState<Bootcamp | null>(null);
   const [imgError, setImgError] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
+  const [quizConfig, setQuizConfig] = useState<QuizEngineConfig>(() => getStoredQuizConfig());
+  const [hasJoinedWebinar, setHasJoinedWebinar] = useState(false);
+  const [schedule, setSchedule] = useState<WebinarSchedule>(() => {
+    const conf = getStoredQuizConfig();
+    return computeWebinarSchedule(conf.webinar_time, conf.webinar_date);
+  });
 
   const studentId = getPersistedStudentId();
   const stateResult = (location.state as any)?.result || (location.state as any)?.devResult;
@@ -62,7 +89,6 @@ export default function ResultPage() {
 
   // Prevent back navigation to quiz assessment & ensure fullscreen is exited
   useEffect(() => {
-    // Ensure fullscreen is closed on result page
     try {
       if (document.fullscreenElement) {
         const doc = document as any;
@@ -76,17 +102,45 @@ export default function ResultPage() {
       }
     } catch {}
 
-    // Trap the back button to remain on the result page
     window.history.pushState(null, '', window.location.href);
 
     const handlePopState = () => {
-      // Re-push history state to keep the user on the result page
       window.history.pushState(null, '', window.location.href);
     };
 
     window.addEventListener('popstate', handlePopState);
     return () => {
       window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
+
+  // Real-time schedule updater (re-computes every 1 second based on wall-clock time)
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSchedule(computeWebinarSchedule(quizConfig.webinar_time, quizConfig.webinar_date));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [quizConfig.webinar_time, quizConfig.webinar_date]);
+
+  // Fetch & live-sync platform quiz & webinar configuration from Admin Portal (including tab focus)
+  useEffect(() => {
+    const syncConfig = () => {
+      fetchQuizConfig()
+        .then((conf) => {
+          if (conf) {
+            setQuizConfig(conf);
+            setSchedule(computeWebinarSchedule(conf.webinar_time, conf.webinar_date));
+          }
+        })
+        .catch((err) => console.warn('Quiz config sync notice:', err));
+    };
+
+    syncConfig();
+    window.addEventListener('focus', syncConfig);
+    window.addEventListener('storage', syncConfig);
+    return () => {
+      window.removeEventListener('focus', syncConfig);
+      window.removeEventListener('storage', syncConfig);
     };
   }, []);
 
@@ -227,7 +281,6 @@ export default function ResultPage() {
     } as any,
   };
 
-  const quizConfig = getStoredQuizConfig();
   const percentage = typeof activeResult.percentage === 'number' ? activeResult.percentage : parseFloat(String(activeResult.percentage || 0));
   const isPassed = typeof activeResult.is_passed === 'boolean' ? activeResult.is_passed : percentage >= (quizConfig.passing_percentage || 50);
   const passFail = isPassed ? 'PASSED' : 'FAILED';
@@ -249,24 +302,23 @@ export default function ResultPage() {
   const timeTaken = (activeResult as any).attempt?.time_taken_seconds || (location.state as any)?.timeTakenSeconds || (devResult as any)?.attempt?.time_taken_seconds || 600;
 
 
-  const WHATSAPP_COMMUNITY_URL = 'https://chat.whatsapp.com/E3OZRJip3Gx1y0XXNmKXvo';
+  const WHATSAPP_COMMUNITY_URL = quizConfig.whatsapp_community_url || 'https://chat.whatsapp.com/E3OZRJip3Gx1y0XXNmKXvo';
+  const WEBINAR_URL = (quizConfig.webinar_url || '').trim();
+  const SKILL_ASSESSMENT_URL = quizConfig.skill_assessment_url || 'https://script.google.com/macros/s/AKfycbx9AllwqUCMUYyGDoAMbjTEr4k0tL84STi_LPogc23RJfiUJNyhDEpbyRPHOwjXrK0/exec';
 
-  const handleJoinBootcamp = () => {
-    // Attempt non-blocking background registration in Supabase
+  const formatCountdown = (seconds: number) => {
+    const safe = Math.max(0, Math.floor(seconds));
+    const m = Math.floor(safe / 60);
+    const s = safe % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
+  const handleJoinWhatsApp = () => {
     try {
-      if (isSupabaseConfigured && targetStudentId && bootcamp?.id) {
-        registerForBootcamp(
-          bootcamp.id,
-          targetStudentId,
-          activeResult.id,
-          '06:00 PM - 07:00 PM',
-          'Upskilling & Placement Preparation',
-          {
-            preferredBatch: 'Upcoming Certified Batch',
-            mode: 'online',
-            whatsappOptIn: true,
-          }
-        ).catch((err) => console.warn('Background registration note:', err));
+      if (targetStudentId) {
+        trackLeadActivity(targetStudentId, 'whatsapp_community_joined', 10, {
+          source: 'webinar_result_card',
+        }).catch(() => {});
       }
     } catch {}
 
@@ -278,7 +330,7 @@ export default function ResultPage() {
         const found = leads.find((l: any) => l.student_id === targetStudentId);
         if (found) {
           found.has_registered_bootcamp = true;
-          found.lead_score = Math.max(found.lead_score, 85);
+          found.lead_score = Math.max(found.lead_score || 50, 85);
           found.lead_status = 'HOT';
           localStorage.setItem('hadescore_local_leads', JSON.stringify(leads));
         }
@@ -286,135 +338,428 @@ export default function ResultPage() {
     } catch {}
   };
 
+  // Helper to ensure we ALWAYS retrieve the latest Admin-configured Webinar URL
+  const getResolvedWebinarUrl = () => {
+    const stored = getStoredQuizConfig();
+    let url = (
+      (quizConfig.webinar_url || '').trim() ||
+      (stored.webinar_url || '').trim() ||
+      (quizConfig.whatsapp_community_url || '').trim() ||
+      (stored.whatsapp_community_url || '').trim() ||
+      'https://chat.whatsapp.com/E3OZRJip3Gx1y0XXNmKXvo'
+    );
+    if (url && !/^https?:\/\//i.test(url)) {
+      url = 'https://' + url;
+    }
+    return url;
+  };
+
+  const resolvedWebinarUrl = getResolvedWebinarUrl();
+
+  const handleJoinWebinar = async (e?: React.MouseEvent) => {
+    // Interactively transition UI to LIVE state immediately
+    setHasJoinedWebinar(true);
+
+    let targetUrl = getResolvedWebinarUrl();
+
+    // If targetUrl is not yet the webinar URL, attempt immediate async refresh
+    if (!quizConfig.webinar_url && !getStoredQuizConfig().webinar_url) {
+      try {
+        const conf = await fetchQuizConfig();
+        if (conf && conf.webinar_url) {
+          setQuizConfig(conf);
+          let freshUrl = conf.webinar_url.trim();
+          if (freshUrl && !/^https?:\/\//i.test(freshUrl)) freshUrl = 'https://' + freshUrl;
+          targetUrl = freshUrl;
+        }
+      } catch {}
+    }
+
+    try {
+      if (targetStudentId) {
+        trackLeadActivity(targetStudentId, 'webinar_link_clicked', 15, {
+          source: 'webinar_result_card',
+          webinar_url: targetUrl,
+        }).catch(() => {});
+      }
+    } catch {}
+
+    toast({
+      title: 'Connecting to Live Webinar',
+      description: 'Redirecting to the official MNC live webinar session...',
+    });
+
+    // Ensure reliable navigation even if popups are blocked by the browser
+    try {
+      const opened = window.open(targetUrl, '_blank', 'noopener,noreferrer');
+      if (!opened || opened.closed || typeof opened.closed === 'undefined') {
+        window.location.href = targetUrl;
+      }
+    } catch {
+      window.location.href = targetUrl;
+    }
+  };
+
+  const isWebinarLive = hasJoinedWebinar || schedule.isLiveNow;
+  const mins = Math.max(0, Math.floor(schedule.secondsRemaining / 60));
+  const secs = Math.max(0, schedule.secondsRemaining % 60);
+  const formattedMins = String(mins).padStart(2, '0');
+  const formattedSecs = String(secs).padStart(2, '0');
+
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 pb-16 sm:pb-20">
-      <main className="max-w-4xl mx-auto px-3.5 sm:px-6 pt-6 sm:pt-12">
+    <div className="min-h-screen lg:h-screen lg:max-h-screen bg-[#F8FAFC] text-slate-800 p-2 sm:p-3 lg:p-3.5 relative lg:overflow-hidden flex flex-col justify-between items-center selection:bg-indigo-500 selection:text-white">
+      {/* Subtle Background Glow Blobs */}
+      <div className="absolute top-0 left-0 w-72 h-72 bg-blue-100/40 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
+      <div className="absolute top-1/3 right-0 w-72 h-72 bg-purple-100/30 rounded-full blur-3xl translate-x-1/2 pointer-events-none" />
+      <div className="absolute bottom-6 left-10 w-64 h-64 bg-emerald-100/30 rounded-full blur-3xl pointer-events-none" />
 
-        {/* ── 1. SUBMISSION CONFIRMATION SECTION (NO SCORES/REMARKS) ── */}
-        <div className="relative z-10 bg-white rounded-3xl border border-indigo-100/90 shadow-[0_15px_45px_-12px_rgba(79,70,229,0.12)] hover:shadow-[0_20px_55px_-12px_rgba(79,70,229,0.16)] transition-all duration-300 p-5 sm:p-8 md:p-9 mb-6 sm:mb-8 overflow-hidden">
-          {/* Top Gradient Accent Strip */}
-          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-violet-600 via-indigo-600 to-emerald-400" />
-          
-          {/* Subtle Ambient Background Aura */}
-          <div className="absolute -top-20 -right-20 w-52 h-52 bg-gradient-to-br from-indigo-500/8 to-emerald-500/8 rounded-full blur-2xl pointer-events-none" />
+      <main className="max-w-4xl lg:max-w-5xl w-full h-full flex flex-col justify-between gap-2 sm:gap-2.5 relative z-10 min-h-0">
 
-          {/* Header Row: Domain & Time Taken */}
-          <div className="pb-5 sm:pb-6 border-b border-slate-100/90 relative z-10">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-3.5 sm:gap-4.5 min-w-0">
-                <div className="w-13 h-13 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-indigo-50 via-white to-violet-50/80 border border-indigo-100 p-1.5 sm:p-2 flex items-center justify-center shrink-0 shadow-md shadow-indigo-500/5">
-                  {imgError ? (
-                    <Sparkles className="w-7 h-7 text-indigo-600" />
-                  ) : (
-                    <img
-                      src={getDomainIconPath(targetDomainSlug, undefined, domainName)}
-                      alt={domainName}
-                      className="w-full h-full object-cover rounded-xl"
-                      onError={() => setImgError(true)}
-                    />
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 tracking-tight leading-tight">
-                    {domainName} Assessment
-                  </h1>
-                  
-                  {/* Clean Meta Tag: Time Taken */}
-                  <div className="flex items-center gap-2 mt-2">
-                    <div
-                      className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200/80 shadow-2xs"
-                      id="time-taken-badge"
-                    >
-                      <span className="flex h-2 w-2 relative">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                      </span>
-                      <Clock className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                      <span>Time Taken: <strong className="font-extrabold text-slate-900">{timeTaken ? formatTimeTaken(timeTaken) : '10m'}</strong></span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+        {/* 1. TOP CONFIRMATION BANNER */}
+        <div className="bg-[#F2FBF7] border border-[#A7F3D0] rounded-2xl px-4 py-2 sm:py-2.5 shadow-2xs flex items-center justify-center gap-3 sm:gap-4 shrink-0">
+          <div className="relative flex items-center justify-center shrink-0 w-10 h-10 sm:w-11 sm:h-11">
+            {/* Radiating burst dashes around checkmark */}
+            <svg className="absolute inset-0 w-full h-full text-[#10B981] pointer-events-none" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="9" y1="12" x2="14" y2="15" />
+              <line x1="39" y1="12" x2="34" y2="15" />
+              <line x1="7" y1="28" x2="12" y2="27" />
+              <line x1="41" y1="28" x2="36" y2="27" />
+            </svg>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#00B074] flex items-center justify-center shadow-xs text-white relative z-10">
+              <Check className="w-4 h-4 stroke-[3]" />
             </div>
           </div>
 
-          {/* Submission Feedback & Results announcement banner */}
-          <div className="pt-5 sm:pt-6 relative z-10">
-            <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-teal-500/5 to-cyan-500/10 border border-emerald-500/20 shadow-xs flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-5">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 via-emerald-500 to-teal-400 text-white flex items-center justify-center shrink-0 shadow-lg shadow-emerald-500/25">
-                <CheckCircle2 className="w-6 h-6 sm:w-7 sm:h-7 stroke-[2.5]" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
-                  Thanks for submitting the quiz!
-                </h2>
-                <p className="text-slate-600 text-xs sm:text-sm mt-1 sm:mt-1.5 leading-relaxed font-medium">
-                  For the results, join the bootcamp! <strong className="text-slate-900 font-bold">The announcement of the results will take place during the bootcamp only.</strong>
-                </p>
-              </div>
-            </div>
-          </div>
+          {/* Thin vertical separator line */}
+          <div className="w-px h-9 sm:h-10 bg-slate-200/90 shrink-0 self-center" />
 
-        </div>
-
-        {/* ── 2. MAIN HIGHLIGHT: HADESCORE FREE BOOTCAMP SHOWCASE ── */}
-        <div className="bg-[#0B132B] text-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 md:p-10 shadow-2xl border border-sky-900/50 mb-8 sm:mb-10 relative overflow-hidden">
-          
-          {/* Top Brand Header */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pb-4 sm:pb-5 border-b border-white/10">
-            <div className="flex items-center gap-2.5 sm:gap-3">
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/10 border border-white/15 p-1 sm:p-1.5 flex items-center justify-center shrink-0">
-                <img src="/logo.png" alt="Hadescore" className="w-full h-full object-contain" />
-              </div>
-              <div>
-                <div className="flex items-center">
-                  <span className="font-display font-black text-sm sm:text-base tracking-tight text-[#00D8F6]">HADES</span>
-                  <span className="font-display font-black text-sm sm:text-base tracking-tight text-white">CORE</span>
-                  <span className="font-display font-black text-sm sm:text-base tracking-tight text-[#00D8F6] ml-1">PVT LTD</span>
-                </div>
-                <div className="text-[10px] sm:text-[11px] text-white/60 tracking-wider">
-                  Learn | Build | Grow • Official Student Initiative
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Main Title & Invitation */}
-          <div className="my-5 sm:my-6">
-            <h2 className="text-xl sm:text-3xl md:text-4xl font-black tracking-tight text-white leading-tight">
-              Join the Certified Bootcamp
+          {/* Text block */}
+          <div className="text-left">
+            <h2 className="text-xs sm:text-sm font-bold text-slate-900 tracking-tight leading-tight">
+              Thanks for submiting the quiz!
             </h2>
-            <p className="text-slate-300 text-xs sm:text-sm md:text-base mt-2 max-w-2xl leading-relaxed">
-              Upskill with live mentor-led sessions, build 2+ real-world portfolio projects, and qualify for our student cash prize pool and placement guidance webinar.
+            <p className="text-[10px] sm:text-[11px] text-slate-600 font-medium leading-tight mt-0.5">
+              Your response has been successfully recorded.
+            </p>
+            <p className="text-[9.5px] sm:text-[10.5px] text-slate-500 font-normal leading-tight mt-0.5">
+              The results will be shared during the webinar. Join us to learn more!
             </p>
           </div>
-
-          {/* HIGH IMPACT CTA BUTTON - Direct WhatsApp Community Link */}
-          <div className="flex items-center justify-center pt-2">
-            <a
-              href={WHATSAPP_COMMUNITY_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={handleJoinBootcamp}
-              className="inline-flex items-center justify-center w-full sm:w-auto h-12 sm:h-14 px-8 sm:px-12 text-sm sm:text-base md:text-lg font-bold bg-[#4F46E5] hover:bg-[#4338CA] active:bg-[#3730A3] text-white rounded-xl sm:rounded-2xl shadow-xl shadow-indigo-600/30 hover:shadow-indigo-600/50 gap-2 sm:gap-3 cursor-pointer transition-all transform hover:-translate-y-0.5 shrink-0 border-0 no-underline"
-              id="join-bootcamp-btn"
-            >
-              <span>Join Bootcamp Now</span>
-              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-            </a>
-          </div>
-
         </div>
 
-        {/* ── FOOTER NAVIGATION ───────────────────────────────── */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-slate-200 text-xs text-slate-500">
-          <Link to="/home" className="hover:text-slate-800 font-semibold transition-colors flex items-center gap-1">
-            ← Explore other domains & quizzes
-          </Link>
-          <span>HADESCORE PVT LTD • All Rights Reserved</span>
+        {/* 2. HERO LIVE WEBINAR SHOWCASE BANNER */}
+        <div className="bg-gradient-to-r from-[#041235] via-[#092265] to-[#04133A] rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 lg:p-6 shadow-xl border border-blue-900/40 text-white relative overflow-hidden shrink-0">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4 lg:gap-6 relative z-10">
+            {/* Left Content Area */}
+            <div className="space-y-2 sm:space-y-2.5 flex-1 w-full">
+              {isWebinarLive ? (
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-red-600 text-white text-[9px] sm:text-[10px] font-black shadow-md shadow-red-600/40 animate-pulse">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-80"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                    </span>
+                    <span>HAPPENING NOW</span>
+                  </div>
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[9px] sm:text-[10px] font-semibold border border-emerald-400/30">
+                    <Video className="w-3 h-3 text-emerald-300" />
+                    <span>Webinar Room Open</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#1D4ED8] text-white text-[9px] sm:text-[10px] font-bold shadow-xs">
+                    <Video className="w-3 h-3 fill-current" />
+                    <span>Live Webinar</span>
+                  </div>
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-teal-500/20 text-teal-300 text-[9px] sm:text-[10px] font-semibold border border-teal-400/30">
+                    <Clock className="w-3 h-3 text-teal-300" />
+                    <span>Starts at {schedule.formattedWebinarTime}</span>
+                  </div>
+                </div>
+              )}
+
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight leading-tight text-white">
+                Join Free Webinar by <br className="hidden sm:inline" />
+                <span className="text-white">MNC Professionals</span>
+              </h1>
+
+              <p className="text-slate-200/90 text-[10px] sm:text-xs max-w-lg font-normal leading-relaxed">
+                {isWebinarLive
+                  ? `The webinar is LIVE now! Join MNC experts to learn insights and receive your quiz results.`
+                  : `Webinar starts in ${schedule.minsRemaining} minutes. Join MNC experts to learn insights and receive your quiz results.`
+                }
+              </p>
+
+              {/* Actions Row: Dual Digital Countdown Pod & Join Webinar CTA */}
+              <div className="pt-1 flex flex-wrap items-center gap-3 sm:gap-4">
+                {isWebinarLive ? (
+                  /* Interactive "Webinar is LIVE now !" Pod */
+                  <a
+                    href={resolvedWebinarUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={handleJoinWebinar}
+                    className="group relative flex items-center gap-2.5 px-3.5 py-2 sm:px-4 sm:py-2 rounded-2xl bg-gradient-to-r from-red-950/90 via-[#2E0836]/90 to-[#0A1A4A]/90 border border-red-500/60 shadow-[0_0_20px_rgba(239,68,68,0.45)] hover:shadow-[0_0_30px_rgba(239,68,68,0.75)] hover:border-red-400 hover:scale-[1.03] transition-all duration-300 backdrop-blur-md cursor-pointer shrink-0 no-underline"
+                    id="webinar-live-interactive-badge"
+                    title="Webinar is Live! Click to join now"
+                  >
+                    {/* Radar Pulsing Live Indicator */}
+                    <div className="relative flex items-center justify-center shrink-0">
+                      <span className="animate-ping absolute inline-flex h-6 w-6 rounded-full bg-red-500/50"></span>
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center text-white shadow-[0_0_12px_rgba(239,68,68,0.8)]">
+                        <Video className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current animate-pulse" />
+                      </div>
+                    </div>
+
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs sm:text-sm lg:text-base font-black tracking-tight text-white drop-shadow-[0_0_10px_rgba(244,63,94,0.9)]">
+                          Webinar is LIVE now !
+                        </span>
+                        <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[8px] sm:text-[9px] font-black uppercase tracking-wider bg-red-600 text-white shadow-xs animate-pulse">
+                          LIVE
+                        </span>
+                      </div>
+                      <p className="text-[8px] sm:text-[9px] text-red-200/90 font-medium flex items-center gap-1">
+                        <span>Click here to enter the room</span>
+                        <ArrowRight className="w-2.5 h-2.5 group-hover:translate-x-1 transition-transform" />
+                      </p>
+                    </div>
+                  </a>
+                ) : (
+                  /* Dual Digital Countdown Timer Pod flanked by cyan waves */
+                  <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+                    {/* Left cyan wave arcs */}
+                    <svg className="w-3 h-7 sm:w-3.5 sm:h-8 text-cyan-400/90 shrink-0" viewBox="0 0 14 30" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                      <path d="M11 3C5 7 2 15 2 22C2 25 3 27 5 29" />
+                      <path d="M13 8C9 11 7 15 7 20C7 22 8 23 9 25" />
+                    </svg>
+
+                    {/* Timer Glass Pod */}
+                    <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-2xl bg-[#06122E]/90 border border-cyan-400/50 shadow-[0_0_15px_rgba(6,182,212,0.35)] backdrop-blur-md">
+                      {/* Cyan Circular Clock Badge */}
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-cyan-400/80 bg-cyan-950/60 flex items-center justify-center text-cyan-300 shadow-[0_0_10px_rgba(34,211,238,0.5)] shrink-0">
+                        <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-300" />
+                      </div>
+
+                      {/* Minutes Digits Card */}
+                      <div className="bg-[#0B1E48] rounded-xl px-2 sm:px-2.5 py-0.5 sm:py-1 flex flex-col items-center justify-center min-w-[46px] sm:min-w-[52px] border border-blue-900/60 shadow-inner">
+                        <span className="text-base sm:text-lg font-black font-mono text-white leading-tight">
+                          {formattedMins}
+                        </span>
+                        <span className="text-[7.5px] sm:text-[8px] font-bold text-slate-300 tracking-wider">
+                          MINUTES
+                        </span>
+                      </div>
+
+                      {/* Seconds Digits Card */}
+                      <div className="bg-[#0B1E48] rounded-xl px-2 sm:px-2.5 py-0.5 sm:py-1 flex flex-col items-center justify-center min-w-[46px] sm:min-w-[52px] border border-blue-900/60 shadow-inner">
+                        <span className="text-base sm:text-lg font-black font-mono text-white leading-tight">
+                          {formattedSecs}
+                        </span>
+                        <span className="text-[7.5px] sm:text-[8px] font-bold text-slate-300 tracking-wider">
+                          SECONDS
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Right cyan wave arcs */}
+                    <svg className="w-3 h-7 sm:w-3.5 sm:h-8 text-cyan-400/90 shrink-0" viewBox="0 0 14 30" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                      <path d="M3 3C9 7 12 15 12 22C12 25 11 27 9 29" />
+                      <path d="M1 8C5 11 7 15 7 20C7 22 6 23 5 25" />
+                    </svg>
+                  </div>
+                )}
+
+                {/* Join Webinar Button */}
+                <a
+                  href={resolvedWebinarUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={handleJoinWebinar}
+                  className={`inline-flex items-center justify-center gap-2.5 px-5 sm:px-6 py-2.5 rounded-full font-bold text-white text-xs sm:text-sm no-underline ${
+                    isWebinarLive
+                      ? 'bg-gradient-to-r from-red-600 via-[#D946EF] to-[#4F46E5] shadow-lg shadow-red-600/40 hover:shadow-red-500/60 animate-pulse hover:animate-none'
+                      : 'bg-gradient-to-r from-[#D946EF] via-[#A855F7] to-[#4F46E5] shadow-md shadow-purple-900/40 hover:shadow-purple-600/50'
+                  } hover:opacity-95 active:scale-98 transition-all duration-200 cursor-pointer border border-white/20 shrink-0`}
+                  id="join-webinar-now-btn"
+                  data-testid="join-webinar-now-btn"
+                  aria-label="Join Webinar Now"
+                >
+                  <div className="w-5 h-5 rounded-full bg-white text-[#D946EF] flex items-center justify-center shrink-0 shadow-xs">
+                    <Play className="w-2.5 h-2.5 fill-current ml-0.5" />
+                  </div>
+                  <span className="font-bold tracking-tight">
+                    {isWebinarLive ? 'Join Live Webinar Now' : 'Join Webinar Now'}
+                  </span>
+                  <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                </a>
+              </div>
+            </div>
+
+            {/* Right Visual Area: Modern Transparent PNG Webinar Illustration */}
+            <div className="hidden md:flex shrink-0 justify-center items-center relative">
+              <div className="relative w-[180px] lg:w-[215px] aspect-[459/506] flex items-center justify-center">
+                <div className="absolute inset-0 bg-blue-500/15 rounded-full blur-2xl transform scale-90 pointer-events-none" />
+                <img
+                  src="/webinar-illustration.png"
+                  alt="Live Webinar Interaction"
+                  className="relative z-10 w-full h-full object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.45)] hover:scale-105 transition-transform duration-300 pointer-events-none select-none"
+                  loading="eager"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 3. WHY JOIN THIS WEBINAR? SECTION */}
+        <div className="space-y-1 sm:space-y-1.5 shrink-0">
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs sm:text-sm">🎯</span>
+            <h2 className="text-xs sm:text-sm font-black text-slate-900 tracking-tight">
+              Why Join This Webinar?
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5">
+            {/* Card 1 */}
+            <div className="bg-[#F0F7FF] border border-[#BFDBFE] rounded-2xl p-2 sm:p-2.5 flex items-center gap-2.5 shadow-2xs">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#2563EB] text-white flex items-center justify-center shrink-0">
+                <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-[11px] sm:text-xs font-bold text-slate-900 leading-tight">
+                  Direct Interaction with MNC Leaders
+                </div>
+                <div className="text-[9px] sm:text-[10px] text-slate-500 mt-0.5 leading-tight line-clamp-2">
+                  Ask questions, get real-time answers, and build your network.
+                </div>
+              </div>
+            </div>
+
+            {/* Card 2 */}
+            <div className="bg-[#FAF5FF] border border-[#E9D5FF] rounded-2xl p-2 sm:p-2.5 flex items-center gap-2.5 shadow-2xs">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#9333EA] text-white flex items-center justify-center shrink-0">
+                <Briefcase className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-[11px] sm:text-xs font-bold text-slate-900 leading-tight">
+                  Real-World Tech Case Studies
+                </div>
+                <div className="text-[9px] sm:text-[10px] text-slate-500 mt-0.5 leading-tight line-clamp-2">
+                  Learn from actual industry projects and success stories.
+                </div>
+              </div>
+            </div>
+
+            {/* Card 3 */}
+            <div className="bg-[#F0FDF4] border border-[#BBF7D0] rounded-2xl p-2 sm:p-2.5 flex items-center gap-2.5 shadow-2xs">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#10B981] text-white flex items-center justify-center shrink-0">
+                <GraduationCap className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-[11px] sm:text-xs font-bold text-slate-900 leading-tight">
+                  Advanced Training Modules
+                </div>
+                <div className="text-[9px] sm:text-[10px] text-slate-500 mt-0.5 leading-tight line-clamp-2">
+                  Get hands-on with industry-relevant skills and tools.
+                </div>
+              </div>
+            </div>
+
+            {/* Card 4 */}
+            <div className="bg-[#FFFBEB] border border-[#FED7AA] rounded-2xl p-2 sm:p-2.5 flex items-center gap-2.5 shadow-2xs">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#F59E0B] text-white flex items-center justify-center shrink-0">
+                <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-[11px] sm:text-xs font-bold text-slate-900 leading-tight">
+                  High-Value Placement Guidance
+                </div>
+                <div className="text-[9px] sm:text-[10px] text-slate-500 mt-0.5 leading-tight line-clamp-2">
+                  Personalized support to help you land your dream job.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 4. WANT TO EARN FREE INTERNSHIPS? SECTION */}
+        <div className="bg-[#F8FAFF] border border-[#E0E7FF] rounded-2xl sm:rounded-3xl p-2.5 sm:p-3 space-y-2 shrink-0">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs sm:text-sm">🚀</span>
+              <h2 className="text-xs sm:text-sm font-black text-slate-900 tracking-tight">
+                Want to Earn Free Internships?
+              </h2>
+            </div>
+            <span className="text-[9px] sm:text-[10px] font-bold text-purple-600 bg-purple-100/70 border border-purple-200/60 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+              Free Internships Opportunity
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {/* Card 1 */}
+            <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-100 px-3 py-1.5 sm:py-2 flex items-center gap-2.5 shadow-2xs">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#2563EB] text-white flex items-center justify-center shrink-0 shadow-xs">
+                <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-xs font-bold text-slate-900 leading-tight">Skill Assessment Test</div>
+                <div className="text-[9px] sm:text-[10px] text-slate-500 mt-0.5 leading-tight">Short domain-based technical evaluation</div>
+              </div>
+            </div>
+
+            {/* Card 2 */}
+            <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-100 px-3 py-1.5 sm:py-2 flex items-center gap-2.5 shadow-2xs">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#9333EA] text-white flex items-center justify-center shrink-0 shadow-xs">
+                <Award className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-xs font-bold text-slate-900 leading-tight">Merit Certificate</div>
+                <div className="text-[9px] sm:text-[10px] text-slate-500 mt-0.5 leading-tight">Awarded to qualifying participants</div>
+              </div>
+            </div>
+          </div>
+
+          <a
+            href={SKILL_ASSESSMENT_URL}
+            onClick={() => {
+              if (targetStudentId) {
+                trackLeadActivity(targetStudentId, 'skill_assessment_clicked', 5, {
+                  url: SKILL_ASSESSMENT_URL,
+                }).catch(() => {});
+              }
+            }}
+            className="w-full py-2 sm:py-2.5 px-4 rounded-xl sm:rounded-2xl font-bold text-white text-xs sm:text-sm bg-gradient-to-r from-[#00B074] via-[#10B981] to-[#34D399] hover:opacity-95 shadow-md shadow-emerald-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer border-0 no-underline"
+            id="take-skill-assessment-btn"
+            data-testid="take-skill-assessment-btn"
+          >
+            <span>🚀</span>
+            <span>Take Skill Assessment Now</span>
+            <ArrowRight className="w-3.5 h-3.5 ml-0.5" />
+          </a>
         </div>
 
       </main>
+
+      {/* Floating Interactive WhatsApp Symbol on bottom right */}
+      <a
+        href={WHATSAPP_COMMUNITY_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={handleJoinWhatsApp}
+        className="fixed bottom-3 right-3 z-50 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#25D366] hover:bg-[#20ba59] active:bg-[#1da850] text-white shadow-lg shadow-emerald-500/35 flex items-center justify-center transition-all transform hover:scale-110 active:scale-95 cursor-pointer no-underline group"
+        id="whatsapp-side-icon-btn"
+        data-testid="whatsapp-side-icon-btn"
+        aria-label="WhatsApp Community"
+        title="WhatsApp Community"
+      >
+        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#25D366] opacity-30 group-hover:opacity-50 pointer-events-none"></span>
+        <WhatsAppIcon className="w-5 h-5 fill-current relative z-10" />
+      </a>
     </div>
   );
 }
+

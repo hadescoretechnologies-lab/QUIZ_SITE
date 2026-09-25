@@ -41,7 +41,9 @@ let memoryConfig = {
   quiz_duration_minutes: 15,
   max_attempts: 1,
   passing_percentage: 50,
-  gemini_api_key: process.env.GEMINI_API_KEY || ''
+  gemini_api_key: process.env.GEMINI_API_KEY || '',
+  webinar_url: '',
+  whatsapp_community_url: 'https://chat.whatsapp.com/E3OZRJip3Gx1y0XXNmKXvo'
 };
 
 // Initialize from file if exists
@@ -441,7 +443,7 @@ async function startQuizAttempt(studentId, domainId, requestedTargetCount, domai
 
   const shuffleArray = (arr) => [...arr].sort(() => Math.random() - 0.5);
 
-  const targetTotal = Math.max(1, Number(requestedTargetCount) || config.questions_per_quiz || 10);
+  const targetTotal = Math.max(1, Number(requestedTargetCount) || config.questions_per_quiz || 30);
   const easyCount = Math.max(1, Math.round(targetTotal * 0.34));
   const medCount = Math.max(1, Math.round(targetTotal * 0.33));
   const hardCount = Math.max(0, targetTotal - easyCount - medCount);
@@ -638,12 +640,12 @@ async function submitQuizAttempt(attemptId, studentId, answers, declaredTotalQue
     }
   }
 
-  // 3. True total questions is either declared by caller, from attempt record, or default 10
+  // 3. True total questions is either declared by caller, from attempt record, or default 30
   const totalQuestions = Math.max(
     1,
     Number(declaredTotalQuestions) ||
     Number(attempt?.total_questions) ||
-    (answerEntries.length > 0 ? answerEntries.length : 10)
+    (answerEntries.length > 0 ? answerEntries.length : 30)
   );
 
   // Evaluate answers in-memory

@@ -10,7 +10,7 @@ export interface AdminStatCardProps {
   changeType?: 'up' | 'down' | 'neutral';
   subtitle?: string;
   badge?: string;
-  accent?: 'emerald' | 'slate' | 'amber' | 'rose' | 'sky';
+  accent?: 'emerald' | 'slate' | 'amber' | 'rose' | 'sky' | 'indigo';
 }
 
 export function AdminStatCard({
@@ -44,7 +44,14 @@ export function AdminStatCard({
       iconBg: 'bg-sky-50 text-sky-700 border-sky-100/80',
       badgeBg: 'bg-sky-50 text-sky-700 border-sky-200/60',
     },
-  }[accent];
+    indigo: {
+      iconBg: 'bg-indigo-50 text-indigo-700 border-indigo-100/80',
+      badgeBg: 'bg-indigo-50 text-indigo-700 border-indigo-200/60',
+    },
+  }[accent] || {
+    iconBg: 'bg-emerald-50 text-emerald-700 border-emerald-100/80',
+    badgeBg: 'bg-emerald-50 text-emerald-700 border-emerald-200/60',
+  };
 
   return (
     <div className="bg-white/90 backdrop-blur-md rounded-2xl border border-slate-200/80 p-5 shadow-[0_1px_3px_0_rgba(0,0,0,0.02)] hover:border-slate-300 hover:shadow-[0_10px_25px_-5px_rgba(15,23,42,0.06),0_8px_10px_-6px_rgba(15,23,42,0.04)] hover:-translate-y-1 transition-all duration-300 ease-out group">

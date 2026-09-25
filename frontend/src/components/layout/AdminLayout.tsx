@@ -29,9 +29,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/admin' },
-  { icon: Target, label: 'Leads', href: '/admin/leads' },
-  { icon: Users, label: 'Students', href: '/admin/students' },
-  { icon: BarChart3, label: 'Analytics', href: '/admin/analytics' },
+  { icon: Users, label: 'Leads', href: '/admin/students' },
   { icon: Settings, label: 'Settings', href: '/admin/settings' },
 ];
 
@@ -81,7 +79,7 @@ export function AdminLayout({ children, title, subtitle, actions }: AdminLayoutP
       <aside
         className={cn(
           'hidden lg:flex lg:flex-col bg-white/85 backdrop-blur-2xl border-r border-slate-200/80 shadow-[4px_0_24px_0_rgba(15,23,42,0.03)] fixed inset-y-0 left-0 z-30 transition-all duration-300 ease-in-out',
-          collapsed ? 'w-20' : 'w-72'
+          collapsed ? 'w-20' : 'w-64'
         )}
       >
         {/* Logo & Collapse Header */}
@@ -335,44 +333,44 @@ export function AdminLayout({ children, title, subtitle, actions }: AdminLayoutP
       <div
         className={cn(
           'flex-1 flex flex-col min-h-screen transition-all duration-300 ease-in-out',
-          collapsed ? 'lg:ml-20' : 'lg:ml-72'
+          collapsed ? 'lg:ml-20' : 'lg:ml-64'
         )}
       >
         {/* Top Navigation Bar */}
-        <header className="h-16 bg-white/80 backdrop-blur-2xl border-b border-slate-200/80 shadow-[0_2px_12px_0_rgba(15,23,42,0.02)] flex items-center justify-between px-4 sm:px-6 lg:px-8 sticky top-0 z-20 transition-all duration-200">
-          <div className="flex items-center gap-3 sm:gap-4">
+        <header className="h-16 bg-white/80 backdrop-blur-2xl border-b border-slate-200/80 shadow-[0_2px_12px_0_rgba(15,23,42,0.02)] flex items-center justify-between px-4 sm:px-6 sticky top-0 z-20 transition-all duration-200">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition-colors"
+              className="lg:hidden p-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition-colors shrink-0"
               aria-label="Open sidebar"
             >
               <Menu className="w-5 h-5" />
             </button>
 
-            <div>
+            <div className="min-w-0">
               {title && (
                 <div className="flex items-center gap-2">
-                  <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
+                  <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight truncate">
                     {title}
                   </h1>
                 </div>
               )}
               {subtitle && (
-                <p className="text-xs text-slate-400 hidden sm:block font-normal mt-0.5">
+                <p className="text-xs text-slate-400 hidden sm:block font-normal mt-0.5 truncate">
                   {subtitle}
                 </p>
               )}
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5 sm:gap-3">
+          <div className="flex items-center gap-2 shrink-0">
             {/* Custom page action slots */}
             {actions}
           </div>
         </header>
 
         {/* Page Main Content with smooth entrance animation */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 relative z-10 animate-in fade-in-50 slide-in-from-bottom-2 duration-500 ease-out">
+        <main className="flex-1 p-3 sm:p-4 lg:p-5 relative z-10 animate-in fade-in-50 slide-in-from-bottom-2 duration-500 ease-out max-w-full overflow-hidden">
           {children}
         </main>
       </div>

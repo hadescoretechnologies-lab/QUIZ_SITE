@@ -265,9 +265,9 @@ function validateSemanticDomainQuestion(q, domainName) {
 /**
  * Call Google Gemini API to generate technical questions for a domain with strict semantic relevance.
  */
-async function generateDomainQuestionsWithGemini(domainName, existingQuestionTexts = [], apiKeyOverride = null, targetCount = 10) {
+async function generateDomainQuestionsWithGemini(domainName, existingQuestionTexts = [], apiKeyOverride = null, targetCount = 30) {
   const apiKey = apiKeyOverride || process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
-  const count = Math.max(5, Math.min(30, Number(targetCount) || 10));
+  const count = Math.max(5, Math.min(30, Number(targetCount) || 30));
   const easyCount = Math.max(1, Math.round(count * 0.34));
   const medCount = Math.max(1, Math.round(count * 0.33));
   const hardCount = Math.max(1, count - easyCount - medCount);

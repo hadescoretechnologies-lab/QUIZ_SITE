@@ -3,10 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
   Users,
-  Target,
-  TrendingUp,
-  Calendar,
-  CheckCircle2,
   ArrowUpRight,
   RefreshCw,
 } from 'lucide-react';
@@ -23,7 +19,6 @@ import {
   Cell,
 } from 'recharts';
 import { AdminLayout } from '@/components/layout/AdminLayout';
-import { AdminStatCard } from '@/components/admin/AdminStatCard';
 import { getDashboardStats, getLeadsByDay, getDomainPopularity } from '@/services/adminService';
 import { getLocalStudents } from '@/services/studentService';
 import { getLocalLeads } from '@/services/leadService';
@@ -78,7 +73,7 @@ export default function AdminDashboardPage() {
         const hotLeads = localLeads.filter((l: any) => l.lead_status === 'HOT').length;
         const warmLeads = localLeads.filter((l: any) => l.lead_status === 'WARM').length;
         const nurtureLeads = localLeads.filter((l: any) => l.lead_status === 'NURTURE').length;
-        const bootcampCount = localLeads.filter((l: any) => l.has_registered_bootcamp).length;
+        const webinarCount = localLeads.filter((l: any) => l.has_registered_bootcamp).length;
 
         const todayStr = new Date().toISOString().slice(0, 10);
         const newToday = localStudents.filter((s: any) => s.created_at?.startsWith(todayStr)).length;
@@ -90,11 +85,11 @@ export default function AdminDashboardPage() {
           new_leads_today: newToday,
           quiz_attempts: attempts,
           completed_quizzes: completed,
-          bootcamp_registrations: bootcampCount,
+          bootcamp_registrations: webinarCount,
           hot_leads: hotLeads,
           warm_leads: warmLeads,
           nurture_leads: nurtureLeads,
-          conversion_rate: totalStudents > 0 ? parseFloat(((bootcampCount / totalStudents) * 100).toFixed(1)) : 0,
+          conversion_rate: totalStudents > 0 ? parseFloat(((webinarCount / totalStudents) * 100).toFixed(1)) : 0,
         });
 
         // Dynamic domain popularity
@@ -197,15 +192,25 @@ export default function AdminDashboardPage() {
   }, [loadData]);
 
   const handleDomainBarClick = (entry: any) => {
-    if (entry && entry.name) {
-      navigate(`/admin/leads?domain=${encodeURIComponent(entry.name)}`);
+    const domainName = entry?.name || entry?.payload?.name;
+    if (domainName) {
+      navigate(`/admin/students?domain=${encodeURIComponent(domainName)}`);
     }
   };
 
+  // Deduplicated Milestone Metrics: candidates who attempted cannot exceed total registered leads
+  const totalLeads = stats.total_students;
+  const attemptedCount = Math.min(totalLeads, Math.max(stats.completed_quizzes, stats.quiz_attempts));
+  const completedCount = Math.min(attemptedCount, stats.completed_quizzes);
+  const webinarCount = Math.min(totalLeads, stats.bootcamp_registrations);
+
+  const attemptPercent = totalLeads > 0 ? Math.round((attemptedCount / totalLeads) * 100) : 0;
+  const completePercent = totalLeads > 0 ? Math.round((completedCount / totalLeads) * 100) : 0;
+  const webinarPercent = totalLeads > 0 ? Math.round((webinarCount / totalLeads) * 100) : 0;
+
   return (
     <AdminLayout
-      title="Executive Dashboard"
-      subtitle="Overview of candidate performance, technical domain assessments, and enrollment conversions"
+      title="Dashboard"
       actions={
         <div className="flex items-center gap-2.5">
           <button
@@ -221,62 +226,92 @@ export default function AdminDashboardPage() {
             className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl gap-2 h-9 text-xs font-semibold shadow-xs"
           >
             <Users className="w-3.5 h-3.5" />
-            View Registered Students
+            <span>View Leads</span>
             <ArrowUpRight className="w-3.5 h-3.5 opacity-70" />
           </Button>
         </div>
       }
     >
-      {/* Key Executive KPI Cards (100% Live Database Counts) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-        <AdminStatCard
-          title="Total Candidates"
-          value={stats.total_students}
-          icon={Users}
-          subtitle="Registered test-takers"
-          accent="slate"
-        />
-        <AdminStatCard
-          title="New Candidates Today"
-          value={stats.new_leads_today}
-          icon={Calendar}
-          subtitle="Captured today"
-          accent="emerald"
-        />
-        <AdminStatCard
-          title="High Intent Candidates"
-          value={stats.hot_leads}
-          icon={Target}
-          badge="Priority"
-          subtitle="Scored ≥60 pts"
-          accent="emerald"
-        />
-        <AdminStatCard
-          title="Engaged Candidates"
-          value={stats.warm_leads}
-          icon={TrendingUp}
-          subtitle="Scored 35 – 59 pts"
-          accent="amber"
-        />
-        <AdminStatCard
-          title="Bootcamp Conversion"
-          value={`${stats.conversion_rate}%`}
-          icon={CheckCircle2}
-          subtitle="Assessment to Bootcamp"
-          accent="emerald"
-        />
+      {/* 4 Candidate Funnel Milestones (Clean, Deduplicated, Direct Cards) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {/* Milestone 1: Registered Leads */}
+        <div className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-2xs space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate-600">1. Total Leads</span>
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200/60">
+              Registered
+            </span>
+          </div>
+          <p className="text-2xl font-bold text-slate-900 font-sans tracking-tight">{totalLeads.toLocaleString()}</p>
+          <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden" />
+          <p className="text-[11px] text-slate-400">Total registered candidates</p>
+        </div>
+
+        {/* Milestone 2: Quiz Attempted */}
+        <div className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-2xs space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate-600">2. Quiz Attempted</span>
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200/60">
+              {attemptPercent}%
+            </span>
+          </div>
+          <p className="text-2xl font-bold text-slate-900 font-sans tracking-tight">{attemptedCount.toLocaleString()}</p>
+          <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-blue-600 rounded-full transition-all"
+              style={{ width: `${attemptPercent}%` }}
+            />
+          </div>
+          <p className="text-[11px] text-slate-400">Assessment activated</p>
+        </div>
+
+        {/* Milestone 3: Quiz Completed */}
+        <div className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-2xs space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate-600">3. Quiz Completed</span>
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200/60">
+              {completePercent}%
+            </span>
+          </div>
+          <p className="text-2xl font-bold text-slate-900 font-sans tracking-tight">{completedCount.toLocaleString()}</p>
+          <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-indigo-600 rounded-full transition-all"
+              style={{ width: `${completePercent}%` }}
+            />
+          </div>
+          <p className="text-[11px] text-slate-400">Diagnostic completed</p>
+        </div>
+
+        {/* Milestone 4: Webinar Enrolled */}
+        <div className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-2xs space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate-600">4. Webinar Enrolled</span>
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+              {webinarPercent}%
+            </span>
+          </div>
+          <p className="text-2xl font-bold text-slate-900 font-sans tracking-tight">{webinarCount.toLocaleString()}</p>
+          <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-emerald-600 rounded-full transition-all"
+              style={{ width: `${webinarPercent}%` }}
+            />
+          </div>
+          <p className="text-[11px] text-emerald-600 font-medium">Ready for webinar conversion</p>
+        </div>
       </div>
 
-      {/* Analytics Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      {/* Analytics Charts Grid for Lead Gen */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* 1. Clickable Domain Assessment Demand */}
-        <div className="bg-white/90 backdrop-blur-md rounded-2xl border border-slate-200/80 p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.02)]">
+        <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-2xs">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="font-bold text-slate-900 text-sm tracking-tight flex items-center gap-1.5">
-                <span>Domain Assessment Demand</span>
+                <span>Domain Lead Demand</span>
                 <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">
-                  Click Bar to Filter
+                  Click Bar to Filter Leads
                 </span>
               </h3>
               <p className="text-xs text-slate-400 mt-0.5">
@@ -286,11 +321,11 @@ export default function AdminDashboardPage() {
           </div>
 
           {domainPop.length === 0 ? (
-            <div className="h-[290px] flex items-center justify-center text-xs text-slate-400">
+            <div className="h-[280px] flex items-center justify-center text-xs text-slate-400">
               No technical domain assessments completed yet. Live metrics will populate as candidates test.
             </div>
           ) : (
-            <ResponsiveContainer width="100%" height={290}>
+            <ResponsiveContainer width="100%" height={280}>
               <BarChart
                 data={domainPop}
                 layout="vertical"
@@ -344,11 +379,11 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* 2. Daily Candidate Inflow Velocity Trend */}
-        <div className="bg-white/90 backdrop-blur-md rounded-2xl border border-slate-200/80 p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.02)]">
+        <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-2xs">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="font-bold text-slate-900 text-sm tracking-tight">
-                Daily Candidate Inflow (Last 10 Days)
+                Daily Lead Acquisition Trend (Past 10 Days)
               </h3>
               <p className="text-xs text-slate-400 mt-0.5">
                 Number of prospective candidates registered per day
@@ -356,7 +391,7 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          <ResponsiveContainer width="100%" height={290}>
+          <ResponsiveContainer width="100%" height={280}>
             <AreaChart data={leadsByDay} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id="leadInflowGrad" x1="0" y1="0" x2="0" y2="1">

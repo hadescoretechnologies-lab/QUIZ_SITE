@@ -577,7 +577,7 @@ export async function exportLeadsCSV(): Promise<string> {
 
   const headers = [
     'Name', 'Email', 'Mobile', 'College', 'Domain', 'Quiz Score', 'Lead Score', 'Lead Status',
-    'UTM Source', 'Campaign', 'Referral Code', 'Last Activity',
+    'Conversion Stage', 'Webinar Enrolled', 'Last Activity',
   ];
 
   const rows = list.map((l) => [
@@ -593,11 +593,10 @@ export async function exportLeadsCSV(): Promise<string> {
       : l.has_completed_quiz
       ? 'Completed'
       : 'Pending',
-    l.lead_score,
+    Math.min(100, Math.max(0, Number(l.lead_score) || 0)),
     l.lead_status,
-    l.student?.utm_source || '',
-    l.student?.utm_campaign || '',
-    l.student?.referral_code || '',
+    l.has_registered_bootcamp ? 'Webinar Enrolled' : l.has_completed_quiz ? 'Quiz Completed' : 'Registered',
+    l.has_registered_bootcamp ? 'Yes' : 'No',
     l.last_activity_at ? new Date(l.last_activity_at).toLocaleDateString('en-IN') : '',
   ]);
 

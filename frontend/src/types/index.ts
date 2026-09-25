@@ -60,6 +60,32 @@ export interface Student {
   updated_at: string;
   // Joined
   preferred_domain?: Domain;
+  lead?: {
+    id?: string;
+    lead_score?: number;
+    lead_status?: LeadStatus;
+    qualification_reason?: string;
+    has_completed_quiz?: boolean;
+    has_viewed_result?: boolean;
+    has_viewed_report?: boolean;
+    has_clicked_premium_report?: boolean;
+    has_registered_bootcamp?: boolean;
+    session_count?: number;
+    quiz_total_questions?: number;
+    quiz_correct_answers?: number;
+    quiz_percentage?: number;
+    last_activity_at?: string;
+    admin_notes?: string;
+  };
+  quiz_result?: {
+    id?: string;
+    domain_id?: string;
+    total_questions?: number;
+    correct_answers?: number;
+    percentage?: number;
+    skill_level?: string;
+    calculated_at?: string;
+  };
 }
 
 export interface StudentRegistrationData {
@@ -286,6 +312,9 @@ export type LeadActivityType =
   | 'bootcamp_registered'
   | 'email_sent'
   | 'whatsapp_sent'
+  | 'whatsapp_community_joined'
+  | 'webinar_link_clicked'
+  | 'skill_assessment_clicked'
   | 'lead_status_changed'
   | 'admin_note_added'
   | 'session_started';

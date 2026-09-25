@@ -204,7 +204,7 @@ export async function getDomainBySlug(slug: string): Promise<Domain | null> {
 // ── Get questions for a domain (WITHOUT correct answers) ──
 export async function getQuestionsForQuiz(domainId: string, limit?: number): Promise<Question[]> {
   const quizConfig = getStoredQuizConfig();
-  const targetLimit = limit || quizConfig.questions_per_quiz || 10;
+  const targetLimit = limit || quizConfig.questions_per_quiz || 30;
 
   // Get questions
   const { data: questions, error: qError } = await supabase
@@ -299,7 +299,7 @@ export async function startQuizAttempt(
   domainName?: string
 ): Promise<QuizAttempt & { questions?: Question[] }> {
   const qConfig = getStoredQuizConfig();
-  const totalQ = targetCount || qConfig.questions_per_quiz || 10;
+  const totalQ = targetCount || qConfig.questions_per_quiz || 30;
 
   // 1. Try Hadescore Backend Quiz Engine (Randomized, unseen questions, shuffled options)
   try {
@@ -403,7 +403,7 @@ export async function submitQuiz(
     selected_option_id: optionId,
   }));
 
-  const declaredTotal = totalQuestionsCount && totalQuestionsCount > 0 ? totalQuestionsCount : 10;
+  const declaredTotal = totalQuestionsCount && totalQuestionsCount > 0 ? totalQuestionsCount : 30;
 
   // 1. Try Hadescore Backend Quiz Engine with fast 2.5s timeout (Server-Side Grading & Anti-Cheat)
   try {
@@ -754,6 +754,103 @@ export interface QuizEngineConfig {
   quiz_timer_minutes: number;
   gemini_api_key?: string;
   gemini_api_key_masked?: string;
+  webinar_url?: string;
+  webinar_date?: string; // e.g. "2026-09-22"
+  webinar_time?: string; // e.g. "18:00" or "6:00 PM"
+  whatsapp_community_url?: string;
+  skill_assessment_url?: string;
+}
+
+export interface WebinarSchedule {
+  webinarTargetTime: Date;
+  quizEnableTime: Date;
+  secondsRemaining: number;
+  minsRemaining: number;
+  formattedWebinarTime: string;
+  formattedQuizEnableTime: string;
+  formattedCountdown: string;
+  isLiveNow: boolean;
+}
+
+export function computeWebinarSchedule(configuredTime?: string, configuredDate?: string): WebinarSchedule {
+  const now = new Date();
+  let targetDate = new Date(now);
+
+  if (configuredDate && configuredDate.trim()) {
+    const dParts = configuredDate.trim().split('-');
+    if (dParts.length === 3) {
+      const year = parseInt(dParts[0], 10);
+      const month = parseInt(dParts[1], 10) - 1;
+      const day = parseInt(dParts[2], 10);
+      if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+        targetDate.setFullYear(year, month, day);
+      }
+    }
+  }
+
+  let hours = 18;
+  let minutes = 0;
+  let hasParsedTime = false;
+
+  if (configuredTime && configuredTime.trim()) {
+    const clean = configuredTime.trim();
+    const match12 = clean.match(/^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)$/i);
+    if (match12) {
+      let h = parseInt(match12[1], 10);
+      const m = match12[2] ? parseInt(match12[2], 10) : 0;
+      const meridiem = match12[3].toUpperCase();
+      if (meridiem === 'PM' && h < 12) h += 12;
+      if (meridiem === 'AM' && h === 12) h = 0;
+      hours = h;
+      minutes = m;
+      hasParsedTime = true;
+    } else {
+      const match24 = clean.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+      if (match24) {
+        hours = parseInt(match24[1], 10);
+        minutes = parseInt(match24[2], 10);
+        hasParsedTime = true;
+      }
+    }
+  }
+
+  if (hasParsedTime) {
+    targetDate.setHours(hours, minutes, 0, 0);
+    if (!configuredDate && targetDate.getTime() < now.getTime() - 2 * 3600 * 1000) {
+      targetDate.setDate(targetDate.getDate() + 1);
+    }
+  } else {
+    // Dynamic rule: Top of next upcoming hour (e.g. 5:15 PM -> 6:00 PM)
+    targetDate.setHours(targetDate.getHours() + 1, 0, 0, 0);
+  }
+
+  // Quiz enable time is strictly Webinar Start Time - 1 hour
+  const quizEnableTime = new Date(targetDate.getTime() - 60 * 60 * 1000);
+
+  const diffMs = targetDate.getTime() - now.getTime();
+  const secondsRemaining = Math.max(0, Math.floor(diffMs / 1000));
+  const minsRemaining = Math.max(0, Math.ceil(secondsRemaining / 60));
+  const isLiveNow = secondsRemaining === 0;
+
+  const formatTime = (d: Date) => {
+    return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+  };
+
+  const safeSec = Math.max(0, Math.floor(secondsRemaining));
+  const m = Math.floor(safeSec / 60);
+  const s = safeSec % 60;
+  const formattedCountdown = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+
+  return {
+    webinarTargetTime: targetDate,
+    quizEnableTime,
+    secondsRemaining,
+    minsRemaining,
+    formattedWebinarTime: formatTime(targetDate),
+    formattedQuizEnableTime: formatTime(quizEnableTime),
+    formattedCountdown,
+    isLiveNow,
+  };
 }
 
 export const QUIZ_CONFIG_KEY = 'hadescore_quiz_config';
@@ -765,7 +862,12 @@ export const DEFAULT_QUIZ_CONFIG: QuizEngineConfig = {
   passing_percentage: 50,
   max_attempts: 1, // 1 Attempt per candidate email ID
   quiz_timer_minutes: 15,
-  quiz_duration_minutes: 0
+  quiz_duration_minutes: 0,
+  webinar_url: '',
+  webinar_date: '',
+  webinar_time: '',
+  whatsapp_community_url: 'https://chat.whatsapp.com/E3OZRJip3Gx1y0XXNmKXvo',
+  skill_assessment_url: 'https://script.google.com/macros/s/AKfycbx9AllwqUCMUYyGDoAMbjTEr4k0tL84STi_LPogc23RJfiUJNyhDEpbyRPHOwjXrK0/exec',
 };
 
 export function getStoredQuizConfig(): QuizEngineConfig {
@@ -777,7 +879,7 @@ export function getStoredQuizConfig(): QuizEngineConfig {
     return {
       ...DEFAULT_QUIZ_CONFIG,
       ...parsed,
-      passing_questions_count: parsed.passing_questions_count || Math.ceil(((parsed.passing_percentage || 50) / 100) * (parsed.questions_per_quiz || 10)),
+      passing_questions_count: parsed.passing_questions_count || Math.ceil(((parsed.passing_percentage || 50) / 100) * (parsed.questions_per_quiz || 30)),
     };
   } catch {
     return DEFAULT_QUIZ_CONFIG;
@@ -790,7 +892,15 @@ export async function fetchQuizConfig(): Promise<QuizEngineConfig> {
     const res = await fetch(`${BACKEND_URL}/api/quiz/config`);
     if (res.ok) {
       const serverConfig = await res.json();
-      const merged = { ...localConfig, ...serverConfig };
+      const merged: QuizEngineConfig = {
+        ...DEFAULT_QUIZ_CONFIG,
+        ...localConfig,
+        ...serverConfig,
+        webinar_url: serverConfig.webinar_url !== undefined ? serverConfig.webinar_url : (localConfig.webinar_url || ''),
+        webinar_date: serverConfig.webinar_date !== undefined ? serverConfig.webinar_date : (localConfig.webinar_date || ''),
+        webinar_time: serverConfig.webinar_time !== undefined ? serverConfig.webinar_time : (localConfig.webinar_time || ''),
+        whatsapp_community_url: serverConfig.whatsapp_community_url || localConfig.whatsapp_community_url || DEFAULT_QUIZ_CONFIG.whatsapp_community_url,
+      };
       localStorage.setItem(QUIZ_CONFIG_KEY, JSON.stringify(merged));
       return merged;
     }
@@ -809,12 +919,12 @@ export async function saveQuizConfig(config: Partial<QuizEngineConfig>): Promise
 
   // Ensure passing_questions_count and passing_percentage stay in sync
   if (config.questions_per_quiz || config.passing_questions_count) {
-    const qCount = updated.questions_per_quiz || 10;
-    const pCount = Math.min(qCount, Math.max(1, updated.passing_questions_count || 5));
+    const qCount = updated.questions_per_quiz || 30;
+    const pCount = Math.min(qCount, Math.max(1, updated.passing_questions_count || 15));
     updated.passing_questions_count = pCount;
     updated.passing_percentage = Math.round((pCount / qCount) * 100);
   } else if (config.passing_percentage) {
-    const qCount = updated.questions_per_quiz || 10;
+    const qCount = updated.questions_per_quiz || 30;
     updated.passing_questions_count = Math.ceil(((config.passing_percentage || 50) / 100) * qCount);
   }
 

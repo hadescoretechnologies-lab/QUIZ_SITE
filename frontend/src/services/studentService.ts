@@ -22,9 +22,14 @@ export const INITIAL_SAMPLE_STUDENTS: Student[] = [
     branch: 'Computer Science (CSE)',
     academic_year: '3rd Year',
     state: 'Tamil Nadu',
+    city: 'Vellore',
+    graduation_year: 2026,
     consent: true,
     is_verified: true,
     whatsapp_opt_in: true,
+    utm_source: 'whatsapp',
+    utm_medium: 'community',
+    utm_campaign: 'campus26',
     preferred_domain: {
       id: 'd1',
       name: 'Python Development',
@@ -39,6 +44,27 @@ export const INITIAL_SAMPLE_STUDENTS: Student[] = [
       created_at: '',
       updated_at: '',
     },
+    lead: {
+      id: 'sample-lead-1',
+      lead_score: 85,
+      lead_status: 'HOT',
+      qualification_reason: 'High Intent: completed assessment (85%), registered for bootcamp, WhatsApp opted in',
+      has_completed_quiz: true,
+      has_viewed_result: true,
+      has_viewed_report: true,
+      has_clicked_premium_report: true,
+      has_registered_bootcamp: true,
+      quiz_total_questions: 10,
+      quiz_correct_answers: 9,
+      quiz_percentage: 90,
+      last_activity_at: new Date(Date.now() - 4 * 3600000).toISOString(),
+    },
+    quiz_result: {
+      total_questions: 10,
+      correct_answers: 9,
+      percentage: 90,
+      skill_level: 'Advanced',
+    },
     created_at: new Date(Date.now() - 3600000).toISOString(),
     updated_at: new Date().toISOString(),
   },
@@ -51,9 +77,14 @@ export const INITIAL_SAMPLE_STUDENTS: Student[] = [
     branch: 'Information Technology (IT)',
     academic_year: '2nd Year',
     state: 'Tamil Nadu',
+    city: 'Chennai',
+    graduation_year: 2027,
     consent: true,
     is_verified: true,
     whatsapp_opt_in: true,
+    utm_source: 'instagram',
+    utm_medium: 'organic_reel',
+    utm_campaign: 'instaskill',
     preferred_domain: {
       id: 'd2',
       name: 'Full-Stack Web Dev',
@@ -68,6 +99,27 @@ export const INITIAL_SAMPLE_STUDENTS: Student[] = [
       created_at: '',
       updated_at: '',
     },
+    lead: {
+      id: 'sample-lead-2',
+      lead_score: 55,
+      lead_status: 'WARM',
+      qualification_reason: 'Engaged: scored 60% on Web Dev and viewed diagnostic report',
+      has_completed_quiz: true,
+      has_viewed_result: true,
+      has_viewed_report: true,
+      has_clicked_premium_report: false,
+      has_registered_bootcamp: false,
+      quiz_total_questions: 10,
+      quiz_correct_answers: 6,
+      quiz_percentage: 60,
+      last_activity_at: new Date(Date.now() - 36 * 3600000).toISOString(),
+    },
+    quiz_result: {
+      total_questions: 10,
+      correct_answers: 6,
+      percentage: 60,
+      skill_level: 'Intermediate',
+    },
     created_at: new Date(Date.now() - 7200000).toISOString(),
     updated_at: new Date().toISOString(),
   },
@@ -80,6 +132,8 @@ export const INITIAL_SAMPLE_STUDENTS: Student[] = [
     branch: 'Data Science & AI',
     academic_year: 'Final Year',
     state: 'Telangana',
+    city: 'Hyderabad',
+    graduation_year: 2025,
     consent: true,
     is_verified: true,
     whatsapp_opt_in: true,
@@ -96,6 +150,27 @@ export const INITIAL_SAMPLE_STUDENTS: Student[] = [
       display_order: 3,
       created_at: '',
       updated_at: '',
+    },
+    lead: {
+      id: 'sample-lead-3',
+      lead_score: 92,
+      lead_status: 'HOT',
+      qualification_reason: 'High Intent: scored 90% in Data Science & AI, registered for bootcamp',
+      has_completed_quiz: true,
+      has_viewed_result: true,
+      has_viewed_report: true,
+      has_clicked_premium_report: true,
+      has_registered_bootcamp: true,
+      quiz_total_questions: 10,
+      quiz_correct_answers: 9,
+      quiz_percentage: 90,
+      last_activity_at: new Date(Date.now() - 2 * 3600000).toISOString(),
+    },
+    quiz_result: {
+      total_questions: 10,
+      correct_answers: 9,
+      percentage: 90,
+      skill_level: 'Advanced',
     },
     created_at: new Date(Date.now() - 86400000).toISOString(),
     updated_at: new Date().toISOString(),
@@ -123,6 +198,16 @@ export function getLocalStudents(): Student[] {
       return [];
     }
 
+    // Load local leads map for offline enrichment
+    const leadsRaw = localStorage.getItem('hadescore_local_leads');
+    const leadsList: any[] = leadsRaw ? JSON.parse(leadsRaw) : [];
+    const leadMap = new Map<string, any>();
+    leadsList.forEach((l) => {
+      if (l.student_id) leadMap.set(l.student_id, l);
+      if (l.student?.email) leadMap.set(l.student.email.toLowerCase().trim(), l);
+      if (l.student?.mobile) leadMap.set(l.student.mobile.slice(-10), l);
+    });
+
     if (!isSeeded && !localStorage.getItem(LOCAL_STUDENTS_KEY)) {
       // First-time seed
       localStorage.setItem(LOCAL_STUDENTS_KEY, JSON.stringify(INITIAL_SAMPLE_STUDENTS));
@@ -132,7 +217,33 @@ export function getLocalStudents(): Student[] {
 
     const raw = localStorage.getItem(LOCAL_STUDENTS_KEY);
     const list: Student[] = raw ? JSON.parse(raw) : [];
-    return list.filter((s) => !deletedIds.has(s.id));
+    return list
+      .filter((s) => !deletedIds.has(s.id))
+      .map((s) => {
+        const lead =
+          leadMap.get(s.id) ||
+          (s.email ? leadMap.get(s.email.toLowerCase().trim()) : undefined) ||
+          (s.mobile ? leadMap.get(s.mobile.slice(-10)) : undefined);
+        if (lead) {
+          return {
+            ...s,
+            lead: {
+              ...s.lead,
+              ...lead,
+              has_completed_quiz: lead.has_completed_quiz ?? s.lead?.has_completed_quiz ?? false,
+              has_registered_bootcamp: lead.has_registered_bootcamp ?? s.lead?.has_registered_bootcamp ?? false,
+              quiz_total_questions: lead.quiz_total_questions || s.lead?.quiz_total_questions || 10,
+              quiz_correct_answers: lead.quiz_correct_answers !== undefined ? lead.quiz_correct_answers : s.lead?.quiz_correct_answers,
+              quiz_percentage: lead.quiz_percentage !== undefined ? lead.quiz_percentage : s.lead?.quiz_percentage,
+              lead_score: Math.min(100, Math.max(0, Number(lead.lead_score || s.lead?.lead_score || 0))),
+              lead_status: lead.lead_status || s.lead?.lead_status || 'NURTURE',
+              qualification_reason: lead.qualification_reason || s.lead?.qualification_reason,
+              last_activity_at: lead.last_activity_at || s.lead?.last_activity_at || s.created_at,
+            },
+          };
+        }
+        return s;
+      });
   } catch {
     return [];
   }
@@ -756,24 +867,40 @@ export async function listStudents(
       };
     });
 
-    // Enrich with leads data safely
+    // Enrich with leads data & quiz results safely
     if (studentList.length > 0) {
       try {
         const studentIds = studentList.map((s) => s.id).filter(Boolean);
-        const { data: leadsData } = await supabase
-          .from('leads')
-          .select('student_id, lead_score, lead_status, has_registered_bootcamp, last_activity_at')
-          .in('student_id', studentIds);
+        const [leadsRes, resultsRes] = await Promise.all([
+          supabase
+            .from('leads')
+            .select('student_id, lead_score, lead_status, qualification_reason, has_completed_quiz, has_viewed_result, has_viewed_report, has_clicked_premium_report, has_registered_bootcamp, last_activity_at, admin_notes')
+            .in('student_id', studentIds),
+          supabase
+            .from('quiz_results')
+            .select('student_id, domain_id, total_questions, correct_answers, percentage, skill_level, calculated_at')
+            .in('student_id', studentIds),
+        ]);
 
-        if (leadsData && leadsData.length > 0) {
-          const leadMap = new Map(leadsData.map((l) => [l.student_id, l]));
-          studentList = studentList.map((s) => ({
+        const leadMap = new Map((leadsRes.data || []).map((l) => [l.student_id, l]));
+        const resultMap = new Map((resultsRes.data || []).map((r) => [r.student_id, r]));
+
+        studentList = studentList.map((s) => {
+          const lData = leadMap.get(s.id);
+          const lead = lData
+            ? {
+                ...lData,
+                lead_score: Math.min(100, Math.max(0, Number(lData.lead_score) || 0)),
+              }
+            : undefined;
+          return {
             ...s,
-            lead: leadMap.get(s.id) || undefined,
-          }));
-        }
+            lead,
+            quiz_result: resultMap.get(s.id) || undefined,
+          };
+        });
       } catch (leadErr) {
-        console.warn('[listStudents] Leads enrichment note:', leadErr);
+        console.warn('[listStudents] Leads & quiz enrichment note:', leadErr);
       }
     }
 
@@ -797,22 +924,33 @@ export async function listStudents(
   }
 }
 
-// ── Admin: Export students CSV ────────────────────────────────
-export async function exportStudentsCSV(filters: StudentFilters): Promise<string> {
+// ── Admin: Export students CSV ─────
+export async function exportStudentsCSV(filters: StudentFilters, directStudents?: any[]): Promise<string> {
   let list: any[] = [];
-  if (isSupabaseConfigured) {
-    let query = supabase
-      .from('students')
-      .select(`*, preferred_domain:domains(name), lead:leads(lead_score, lead_status)`);
+  if (directStudents && directStudents.length > 0) {
+    list = directStudents;
+  } else if (isSupabaseConfigured) {
+    try {
+      let query = supabase
+        .from('students')
+        .select(`
+          *,
+          preferred_domain:domains(name, slug),
+          lead:leads(*),
+          quiz_results(total_questions, correct_answers, percentage, skill_level, calculated_at)
+        `);
 
-    if (filters.search) {
-      query = query.or(`full_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%`);
-    }
+      if (filters.search) {
+        query = query.or(`full_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%,college.ilike.%${filters.search}%,mobile.ilike.%${filters.search}%`);
+      }
 
-    const { data, error } = await query;
-    if (!error && data) {
-      const deletedIds = getDeletedStudentIds();
-      list = (data as any[]).filter((s) => !deletedIds.has(s.id));
+      const { data, error } = await query;
+      if (!error && data) {
+        const deletedIds = getDeletedStudentIds();
+        list = (data as any[]).filter((s) => !deletedIds.has(s.id));
+      }
+    } catch (e) {
+      console.warn('exportStudentsCSV supabase note:', e);
     }
   }
 
@@ -821,21 +959,94 @@ export async function exportStudentsCSV(filters: StudentFilters): Promise<string
   }
 
   const headers = [
-    'Name', 'Email', 'Mobile', 'College', 'Branch', 'Year', 'State',
-    'Domain', 'Lead Score', 'Lead Status', 'UTM Source', 'Referral Code', 'Registered At',
+    'Candidate Name',
+    'Email Address',
+    'Mobile Number',
+    'College Name',
+    'Branch / Department',
+    'Academic Year',
+    'State',
+    'City',
+    'Preferred Tech Domain',
+    'Quiz Status',
+    'Quiz Percentage',
+    'Correct Answers',
+    'Total Questions',
+    'Skill Level',
+    'Current Conversion Stage',
+    'Lead Status',
+    'Lead Score',
+    'Qualification Reason',
+    'Webinar Enrolled',
+    'Report Viewed',
+    'WhatsApp Opt-in',
+    'Registered At',
+    'Last Activity At',
   ];
 
-  const rows = list.map((s) => [
-    s.full_name, s.email, s.mobile, s.college, s.branch, s.academic_year, s.state,
-    getStudentDomainDisplay(s).name,
-    s.lead?.lead_score || 0,
-    s.lead?.lead_status || 'NURTURE',
-    s.utm_source || '', s.referral_code || '',
-    s.created_at ? new Date(s.created_at).toLocaleDateString('en-IN') : '',
-  ]);
+  const rows = list.map((s) => {
+    // Safely extract lead whether it is an object or an array of 1 object
+    const rawLead = s.lead || s.leads;
+    const lead = Array.isArray(rawLead) ? rawLead[0] : rawLead;
 
-  const csv = [headers, ...rows]
-    .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+    // Safely extract quiz result whether it is an object or an array of 1 object
+    const rawResult = s.quiz_result || s.quiz_results;
+    const quizResult = Array.isArray(rawResult) ? rawResult[0] : rawResult;
+
+    const domainName = getStudentDomainDisplay(s).name;
+    
+    // Determine Quiz Metrics
+    const hasQuiz = Boolean(lead?.has_completed_quiz || quizResult || lead?.quiz_correct_answers !== undefined);
+    const quizScore = quizResult?.correct_answers ?? lead?.quiz_correct_answers ?? '';
+    const quizTotal = quizResult?.total_questions ?? lead?.quiz_total_questions ?? (hasQuiz ? 10 : '');
+    const quizPct = quizResult?.percentage ?? lead?.quiz_percentage ?? (quizScore !== '' && quizTotal ? Math.round((Number(quizScore) / Number(quizTotal)) * 100) : '');
+
+    // Conversion Stage - webinar enrolled instead of bootcamp enrolled
+    let stage = '1. Registered';
+    if (lead?.has_registered_bootcamp) {
+      stage = '4. Webinar Enrolled';
+    } else if (lead?.has_viewed_report) {
+      stage = '3. Report Viewed';
+    } else if (hasQuiz) {
+      stage = '2. Quiz Completed';
+    }
+
+    const registeredDate = s.created_at ? new Date(s.created_at).toLocaleString('en-IN') : '';
+    const lastActivity = lead?.last_activity_at ? new Date(lead.last_activity_at).toLocaleString('en-IN') : registeredDate;
+
+    // Lead Score capped strictly to 100 max
+    const rawScore = Number(lead?.lead_score ?? 0);
+    const clampedScore = Math.min(100, Math.max(0, isNaN(rawScore) ? 0 : rawScore));
+
+    return [
+      s.full_name || '',
+      s.email || '',
+      s.mobile ? `+91 ${s.mobile}` : '',
+      s.college || '',
+      s.branch || '',
+      s.academic_year || '',
+      s.state || '',
+      s.city || '',
+      domainName,
+      hasQuiz ? 'Completed' : 'Pending',
+      quizPct !== '' ? `${quizPct}%` : 'N/A',
+      quizScore !== '' ? String(quizScore) : 'N/A',
+      quizTotal !== '' ? String(quizTotal) : 'N/A',
+      quizResult?.skill_level || (clampedScore >= 80 ? 'Advanced' : clampedScore >= 50 ? 'Intermediate' : 'Beginner'),
+      stage,
+      lead?.lead_status || 'NURTURE',
+      clampedScore,
+      (lead?.qualification_reason || '').replace(/bootcamp/gi, 'webinar'),
+      lead?.has_registered_bootcamp ? 'Yes' : 'No',
+      lead?.has_viewed_report ? 'Yes' : 'No',
+      s.whatsapp_opt_in ? 'Yes' : 'No',
+      registeredDate,
+      lastActivity,
+    ];
+  });
+
+  const csv = '\uFEFF' + [headers, ...rows]
+    .map((row) => row.map((cell) => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(','))
     .join('\n');
 
   return csv;

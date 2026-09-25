@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Search,
   Download,
@@ -17,6 +18,15 @@ import {
   ChevronRight,
   X,
   Sparkles,
+  Send,
+  CheckCircle2,
+  Clock,
+  ExternalLink,
+  Flame,
+  Award,
+  Layers,
+  FileSpreadsheet,
+  Check,
 } from 'lucide-react';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { Button } from '@/components/ui/button';
@@ -30,72 +40,25 @@ import {
   deleteStudent,
   deleteAllStudents,
   getLocalStudents,
-  LOCAL_STUDENTS_KEY,
 } from '@/services/studentService';
+import { subscribeToDataChanges } from '@/lib/sync';
 import supabase, { isSupabaseConfigured } from '@/lib/supabase';
 import { formatDate, formatRelativeTime } from '@/lib/analytics';
 import { toast } from '@/hooks/useToast';
-import type { Student, StudentFilters } from '@/types';
+import type { Student, StudentFilters, LeadStatus } from '@/types';
 
-// Sample fallback data for demonstration when offline
-const SAMPLE_STUDENTS: Student[] = [
-  {
-    id: '1',
-    full_name: 'Priya Sharma',
-    email: 'priya@example.com',
-    mobile: '9876543210',
-    college: 'VIT Vellore',
-    branch: 'Computer Science (CSE)',
-    academic_year: '3rd Year',
-    state: 'Tamil Nadu',
-    consent: true,
-    is_verified: true,
-    whatsapp_opt_in: true,
-    preferred_domain: { id: 'd1', name: 'Python Development', slug: 'python', icon: '🐍', color: '#059669', difficulty: 'intermediate', question_count: 30, estimated_minutes: 30, active: true, display_order: 1, created_at: '', updated_at: '' },
-    created_at: new Date(Date.now() - 3600000).toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    full_name: 'Rahul Mehta',
-    email: 'rahul@example.com',
-    mobile: '9765432109',
-    college: 'SRM University',
-    branch: 'Information Technology',
-    academic_year: '2nd Year',
-    state: 'Karnataka',
-    consent: true,
-    is_verified: true,
-    whatsapp_opt_in: false,
-    preferred_domain: { id: 'd2', name: 'Full-Stack Web Dev', slug: 'web-dev', icon: '💻', color: '#4f46e5', difficulty: 'intermediate', question_count: 30, estimated_minutes: 30, active: true, display_order: 2, created_at: '', updated_at: '' },
-    created_at: new Date(Date.now() - 7200000).toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '3',
-    full_name: 'Ananya Reddy',
-    email: 'ananya@example.com',
-    mobile: '9654321098',
-    college: 'Osmania University',
-    branch: 'Data Science & AI',
-    academic_year: 'Final Year',
-    state: 'Telangana',
-    consent: true,
-    is_verified: true,
-    whatsapp_opt_in: true,
-    preferred_domain: { id: 'd3', name: 'Data Science & AI', slug: 'data-science', icon: '📊', color: '#0284c7', difficulty: 'intermediate', question_count: 30, estimated_minutes: 30, active: true, display_order: 3, created_at: '', updated_at: '' },
-    created_at: new Date(Date.now() - 86400000).toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-];
+// Milestone Funnel Tabs
+type FunnelTab = 'all' | 'webinar_enrolled' | 'quiz_pending';
 
 export default function AdminStudentsPage() {
+  const [searchParams] = useSearchParams();
   const [students, setStudents] = useState<Student[]>([]);
-  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(searchParams.get('domain') || searchParams.get('search') || '');
   const [selectedDate, setSelectedDate] = useState<string>('');
-  const [quickDate, setQuickDate] = useState<'all' | 'today' | 'yesterday' | '7days'>('all');
+  const [funnelTab, setFunnelTab] = useState<FunnelTab>('all');
+  
+  // Modals state
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [deleteStudentConfirm, setDeleteStudentConfirm] = useState<Student | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -105,6 +68,7 @@ export default function AdminStudentsPage() {
 
   const initialLoadedRef = useRef(false);
 
+  // Load students data
   const load = useCallback(async (isSilent = false) => {
     if (!isSilent && !initialLoadedRef.current) {
       setLoading(true);
@@ -113,18 +77,15 @@ export default function AdminStudentsPage() {
       if (!isSupabaseConfigured) {
         const local = getLocalStudents();
         setStudents(local);
-        setTotal(local.length);
         return;
       }
-      const result = await listStudents({}, 1, 200);
+      const result = await listStudents({}, 1, 300);
       if (result && result.data) {
         setStudents(result.data as Student[]);
-        setTotal(result.total);
       }
     } catch {
       const local = getLocalStudents();
       setStudents(local);
-      setTotal(local.length);
     } finally {
       initialLoadedRef.current = true;
       if (!isSilent) {
@@ -135,11 +96,97 @@ export default function AdminStudentsPage() {
 
   useEffect(() => {
     load(false);
+    const unsubscribe = subscribeToDataChanges(() => load(true));
+    return () => unsubscribe();
   }, [load]);
 
-  // Filter students based on search and selected calendar date
+  // Handle URL query parameters if passed from dashboard
+  useEffect(() => {
+    const domainQuery = searchParams.get('domain');
+    if (domainQuery) {
+      setSearch(domainQuery);
+    }
+  }, [searchParams]);
+
+  // Determine conversion milestone for a student (simplified without stage numbers)
+  const getCandidateStage = (student: Student) => {
+    const lead = student.lead;
+    const hasQuiz = Boolean(
+      lead?.has_completed_quiz ||
+      student.quiz_result ||
+      lead?.quiz_correct_answers !== undefined
+    );
+    if (lead?.has_registered_bootcamp) {
+      return {
+        label: 'Webinar Enrolled',
+        badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      };
+    }
+    if (lead?.has_viewed_report) {
+      return {
+        label: 'Report Viewed',
+        badgeColor: 'bg-purple-50 text-purple-700 border-purple-200',
+      };
+    }
+    if (hasQuiz) {
+      return {
+        label: 'Quiz Completed',
+        badgeColor: 'bg-blue-50 text-blue-700 border-blue-200',
+      };
+    }
+    return {
+      label: 'Registered',
+      badgeColor: 'bg-slate-100 text-slate-600 border-slate-200',
+    };
+  };
+
+  // 1-Click WhatsApp Helper
+  const openWhatsApp = (student: Student) => {
+    const rawMobile = student.mobile?.replace(/[^0-9]/g, '').slice(-10);
+    if (!rawMobile) {
+      toast({
+        title: 'Mobile number missing',
+        description: 'Candidate does not have a valid mobile number.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    const domain = getStudentDomainDisplay(student).name;
+    const name = student.full_name?.split(' ')[0] || 'Candidate';
+    const text = encodeURIComponent(
+      `Hi ${name}! Greetings from HADESCORE. We noticed your interest in the ${domain} assessment. Would you like details on our upcoming live masterclass and career tracks?`
+    );
+    window.open(`https://wa.me/91${rawMobile}?text=${text}`, '_blank');
+  };
+
+  // Funnel counts calculation
+  const funnelCounts = useMemo(() => {
+    let webinarEnrolled = 0;
+    let quizPending = 0;
+
+    students.forEach((s) => {
+      const hasQuiz = Boolean(s.lead?.has_completed_quiz || s.quiz_result || s.lead?.quiz_correct_answers !== undefined);
+      if (s.lead?.has_registered_bootcamp) webinarEnrolled++;
+      if (!hasQuiz) quizPending++;
+    });
+
+    return {
+      all: students.length,
+      webinar_enrolled: webinarEnrolled,
+      quiz_pending: quizPending,
+    };
+  }, [students]);
+
+  // Filter students based on search, funnel tab, and selected calendar date
   const filteredStudents = useMemo(() => {
     let list = [...students];
+
+    // Funnel Tab filter
+    if (funnelTab === 'webinar_enrolled') {
+      list = list.filter((s) => Boolean(s.lead?.has_registered_bootcamp));
+    } else if (funnelTab === 'quiz_pending') {
+      list = list.filter((s) => !s.lead?.has_completed_quiz && !s.quiz_result && s.lead?.quiz_correct_answers === undefined);
+    }
 
     // Search filter
     if (search.trim()) {
@@ -155,10 +202,7 @@ export default function AdminStudentsPage() {
       );
     }
 
-    // Calendar & Quick Date filter
-    const todayYMD = new Date().toISOString().slice(0, 10);
-    const yesterdayYMD = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-
+    // Calendar Date filter
     if (selectedDate) {
       list = list.filter((s) => {
         if (!s.created_at) return false;
@@ -168,74 +212,57 @@ export default function AdminStudentsPage() {
           return false;
         }
       });
-    } else if (quickDate === 'today') {
-      list = list.filter((s) => {
-        if (!s.created_at) return false;
-        try {
-          return new Date(s.created_at).toISOString().slice(0, 10) === todayYMD;
-        } catch {
-          return false;
-        }
-      });
-    } else if (quickDate === 'yesterday') {
-      list = list.filter((s) => {
-        if (!s.created_at) return false;
-        try {
-          return new Date(s.created_at).toISOString().slice(0, 10) === yesterdayYMD;
-        } catch {
-          return false;
-        }
-      });
-    } else if (quickDate === '7days') {
-      list = list.filter((s) => {
-        if (!s.created_at) return false;
-        try {
-          const diff = Date.now() - new Date(s.created_at).getTime();
-          return diff >= 0 && diff <= 7 * 86400000;
-        } catch {
-          return false;
-        }
-      });
     }
 
     // Sort newest first
     return list.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
-  }, [students, search, selectedDate, quickDate]);
+  }, [students, funnelTab, search, selectedDate]);
 
+  // Export updated Excel CSV
   const handleExport = async () => {
     setExporting(true);
     try {
-      const csv = await exportStudentsCSV({ search: search || undefined });
+      const csv = await exportStudentsCSV({ search: search || undefined }, students);
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `hadescore_registered_students_${new Date().toISOString().slice(0, 10)}.csv`;
+      const timeStr = new Date().toTimeString().slice(0, 8).replace(/:/g, '');
+      a.download = `hadescore_candidates_${new Date().toISOString().slice(0, 10)}_${timeStr}.csv`;
       a.click();
+      toast({
+        title: 'Excel / CSV Export Ready',
+        description: 'Updated candidate dataset downloaded successfully.',
+        variant: 'success',
+      });
     } catch {
-      // ignore
+      toast({
+        title: 'Export Failed',
+        description: 'Could not generate CSV export. Please try again.',
+        variant: 'destructive',
+      });
     } finally {
       setExporting(false);
     }
   };
 
+  // Delete single student
   const handleDeleteStudent = async (studentId: string) => {
     setDeletingId(studentId);
     try {
       await deleteStudent(studentId);
       setStudents((prev) => prev.filter((s) => s.id !== studentId));
-      setTotal((prev) => Math.max(0, prev - 1));
       if (selectedStudent?.id === studentId) setSelectedStudent(null);
       setDeleteStudentConfirm(null);
       toast({
-        title: 'Student Record Deleted',
-        description: 'Candidate has been removed from registered students permanently.',
+        title: 'Candidate Deleted',
+        description: 'Record has been removed permanently from students and leads directory.',
         variant: 'success',
       });
     } catch (err: any) {
       toast({
         title: 'Delete Failed',
-        description: err.message || 'Could not delete student record.',
+        description: err.message || 'Could not delete record.',
         variant: 'destructive',
       });
     } finally {
@@ -243,23 +270,23 @@ export default function AdminStudentsPage() {
     }
   };
 
+  // Delete all students
   const handleDeleteAll = async () => {
     setDeletingAll(true);
     try {
       const ids = students.map((s) => s.id);
       await deleteAllStudents(ids);
       setStudents([]);
-      setTotal(0);
-      setConfirmDeleteAllModal(false);
       setSelectedStudent(null);
+      setConfirmDeleteAllModal(false);
       toast({
-        title: 'All Students Deleted',
-        description: 'All registered student records have been deleted permanently.',
+        title: 'All Records Cleared',
+        description: 'Directory has been reset successfully.',
         variant: 'success',
       });
     } catch (err: any) {
       toast({
-        title: 'Delete All Failed',
+        title: 'Action Failed',
         description: err.message || 'Could not delete all students.',
         variant: 'destructive',
       });
@@ -270,263 +297,274 @@ export default function AdminStudentsPage() {
 
   return (
     <AdminLayout
-      title="Quiz Registered Students"
+      title="Leads"
+      subtitle="Directory of candidate assessments, domains and conversion milestones"
       actions={
         <div className="flex items-center gap-2">
+          {/* Download Complete Excel / CSV */}
           <Button
-            variant="outline"
             size="sm"
             onClick={handleExport}
-            disabled={exporting}
-            className="rounded-xl border-slate-200/80 hover:bg-slate-50 text-slate-700 gap-2 h-9 text-xs font-semibold shadow-xs"
+            disabled={exporting || students.length === 0}
+            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-sm shadow-emerald-600/20"
           >
             <Download className="w-3.5 h-3.5" />
-            {exporting ? 'Exporting...' : 'Export CSV'}
+            {exporting ? 'Generating Excel...' : 'Export Excel / CSV'}
           </Button>
 
+          {/* Delete All Records Button */}
           {students.length > 0 && (
             <Button
               variant="outline"
               size="sm"
               onClick={() => setConfirmDeleteAllModal(true)}
-              className="rounded-xl border-rose-200 hover:bg-rose-50 hover:border-rose-300 text-rose-600 gap-1.5 h-9 text-xs font-semibold shadow-xs transition-colors"
-              title="Delete all registered students"
+              className="border-rose-200 text-rose-600 hover:bg-rose-50 hover:border-rose-300 font-medium text-xs flex items-center gap-1.5"
             >
-              <Trash2 className="w-3.5 h-3.5 text-rose-500" />
-              Delete All
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Clear Directory</span>
             </Button>
           )}
         </div>
       }
     >
-      {/* Search Bar, Calendar Date Picker & Quick Date Filters Header */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs mb-5 space-y-3">
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
-          {/* Search Input */}
-          <div className="relative w-full lg:w-96">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <Input
+      {/* ── Top Bar: Funnel Filter Tabs ──────────────────────────────── */}
+      <div className="bg-white rounded-xl border border-slate-200/80 p-1.5 shadow-2xs mb-3">
+        <div className="flex items-center gap-1 overflow-x-auto scrollbar-none">
+          {[
+            { id: 'all', label: 'All Candidates', count: funnelCounts.all },
+            { id: 'webinar_enrolled', label: 'Webinar Enrolled', count: funnelCounts.webinar_enrolled },
+            { id: 'quiz_pending', label: 'Quiz Pending', count: funnelCounts.quiz_pending },
+          ].map((tab) => {
+            const isActive = funnelTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setFunnelTab(tab.id as FunnelTab)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                  isActive
+                    ? 'bg-slate-900 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`}
+              >
+                <span>{tab.label}</span>
+                <span
+                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                    isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
+                  }`}
+                >
+                  {tab.count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── Controls Bar: Clean Search & Date Filters ─────────────────── */}
+      <div className="bg-white rounded-xl border border-slate-200/80 p-2.5 shadow-2xs mb-3">
+        <div className="flex flex-col sm:flex-row gap-2.5 items-center justify-between">
+          {/* Search Box with ample padding so icon and placeholder never overlap */}
+          <div className="relative w-full sm:max-w-md flex items-center">
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            <input
               type="text"
-              placeholder="Search candidate, email, mobile, college, domain..."
+              placeholder="Search candidate, mobile, domain..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 bg-slate-50/70 border-slate-200/80 rounded-xl text-xs h-9 shadow-xs focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+              className="w-full pl-10 pr-8 h-9 text-xs rounded-lg bg-slate-50/80 border border-slate-200/80 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-slate-400 transition-colors"
             />
+            {search && (
+              <button
+                onClick={() => setSearch('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded-full"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
 
-          {/* Calendar Picker & Quick Filters */}
-          <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
-            {/* Native Calendar Input */}
-            <div className="flex items-center gap-1.5 bg-slate-50/80 px-2.5 py-1 rounded-xl border border-slate-200 text-xs">
-              <Calendar className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => {
-                  setSelectedDate(e.target.value);
-                  setQuickDate('all');
-                }}
-                className="bg-transparent text-xs text-slate-700 font-semibold focus:outline-none cursor-pointer"
-                title="Filter by specific date"
-              />
-              {selectedDate && (
-                <button
-                  onClick={() => setSelectedDate('')}
-                  className="p-0.5 hover:bg-slate-200 rounded text-slate-400 hover:text-slate-700 transition-colors"
-                  title="Clear date"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              )}
-            </div>
-
-            {/* Quick Date Pills */}
-            <div className="flex items-center gap-1 bg-slate-100/80 p-1 rounded-xl border border-slate-200/60">
-              {[
-                { id: 'all', label: 'All Dates' },
-                { id: 'today', label: 'Today' },
-                { id: 'yesterday', label: 'Yesterday' },
-                { id: '7days', label: 'Last 7 Days' },
-              ].map((pill) => {
-                const isActive = !selectedDate && quickDate === pill.id;
-                return (
-                  <button
-                    key={pill.id}
-                    onClick={() => {
-                      setSelectedDate('');
-                      setQuickDate(pill.id as any);
-                    }}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
-                      isActive
-                        ? 'bg-white text-emerald-700 shadow-xs'
-                        : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    {pill.label}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Total Count Badge */}
-            <div className="flex items-center gap-1.5 text-xs text-slate-600 bg-emerald-50 text-emerald-800 border border-emerald-200/80 px-3 py-1.5 rounded-xl font-bold ml-auto lg:ml-0">
-              <span>Candidates:</span>
-              <strong className="text-emerald-950 font-black">{filteredStudents.length}</strong>
-            </div>
+          {/* Simple Clean Date Picker */}
+          <div className="flex items-center gap-1.5 bg-slate-100/80 px-2.5 py-1 rounded-lg border border-slate-200/60 self-start sm:self-auto">
+            <span className="text-[11px] font-medium text-slate-500">Date:</span>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="bg-white text-slate-700 text-xs rounded px-2 py-0.5 border border-slate-200 shadow-2xs focus:outline-none focus:ring-1 focus:ring-slate-400 font-mono"
+            />
+            {selectedDate && (
+              <button
+                onClick={() => setSelectedDate('')}
+                title="Clear date filter"
+                className="p-0.5 text-slate-400 hover:text-slate-600 rounded"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Main Students Table (Scrollable View, No Page Cutoff) */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_1px_3px_0_rgba(0,0,0,0.02)] overflow-hidden">
-        <div className="overflow-x-auto max-h-[620px] overflow-y-auto scrollbar-thin">
-          <table className="w-full text-left border-collapse">
+      {/* ── Main Compact Table (Guaranteed 100% Desktop Fit) ───────────── */}
+      <div className="bg-white rounded-xl border border-slate-200/80 shadow-2xs overflow-hidden">
+        <div className="w-full max-h-[calc(100vh-275px)] min-h-[420px] overflow-y-auto overflow-x-auto scrollbar-thin">
+          <table className="w-full text-left border-collapse table-fixed min-w-[750px] xl:min-w-full">
             <thead>
-              <tr className="border-b border-slate-200/90 bg-slate-50 text-[11px] font-bold text-slate-600 uppercase tracking-wider sticky top-0 z-20 shadow-xs">
-                <th className="px-5 py-3.5 bg-slate-50">Candidate Name & Email</th>
-                <th className="px-4 py-3.5 bg-slate-50">Contact (Mobile)</th>
-                <th className="px-4 py-3.5 bg-slate-50">College / University</th>
-                <th className="px-4 py-3.5 bg-slate-50">Branch / Course</th>
-                <th className="px-4 py-3.5 bg-slate-50">Academic Year</th>
-                <th className="px-4 py-3.5 bg-slate-50">State</th>
-                <th className="px-4 py-3.5 bg-slate-50">Registered Domain</th>
-                <th className="px-4 py-3.5 bg-slate-50">Registered Date</th>
-                <th className="px-4 py-3.5 text-right bg-slate-50">Actions</th>
+              <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-semibold text-slate-600 uppercase tracking-wider sticky top-0 z-20 shadow-2xs">
+                <th className="px-3.5 py-2.5 w-[25%]">Candidate</th>
+                <th className="px-3 py-2.5 w-[20%]">Contact & WhatsApp</th>
+                <th className="px-3 py-2.5 w-[22%]">Domain</th>
+                <th className="px-3 py-2.5 w-[15%]">Quiz Score</th>
+                <th className="px-3 py-2.5 w-[12%]">Milestone</th>
+                <th className="px-3 py-2.5 text-right w-[6%]">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs">
               {loading ? (
                 <tr>
-                  <td colSpan={9} className="p-0">
-                    <AdminTableSkeleton rows={5} columns={9} />
+                  <td colSpan={6} className="p-0">
+                    <AdminTableSkeleton rows={6} columns={6} />
                   </td>
                 </tr>
               ) : filteredStudents.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-12">
+                  <td colSpan={6} className="py-12">
                     <AdminEmptyState
-                      title="No registered students found"
+                      title="No candidates found"
                       description={
-                        selectedDate
+                        search
+                          ? `No candidates match "${search}". Try adjusting your search query.`
+                          : selectedDate
                           ? `No candidates registered on ${selectedDate}.`
-                          : 'No candidates match your current search query or date filter.'
+                          : 'No candidates match your selected filters.'
                       }
                       actionLabel="Reset Filters"
                       onAction={() => {
                         setSearch('');
                         setSelectedDate('');
-                        setQuickDate('all');
+                        setFunnelTab('all');
                       }}
                     />
                   </td>
                 </tr>
               ) : (
                 filteredStudents.map((student) => {
+                  const domainInfo = getStudentDomainDisplay(student);
+                  const stage = getCandidateStage(student);
+                  const lead = student.lead;
+                  const quizResult = student.quiz_result;
+
+                  // Compute quiz score metrics
+                  const hasQuiz = Boolean(lead?.has_completed_quiz || quizResult || lead?.quiz_correct_answers !== undefined);
+                  const correctAnswers = quizResult?.correct_answers ?? lead?.quiz_correct_answers;
+                  const totalQuestions = quizResult?.total_questions ?? lead?.quiz_total_questions ?? 10;
+                  
+                  let displayPercentage: number | null = null;
+                  if (quizResult?.percentage !== undefined && quizResult?.percentage !== null) {
+                    displayPercentage = Number(quizResult.percentage);
+                  } else if (lead?.quiz_percentage !== undefined && lead?.quiz_percentage !== null) {
+                    displayPercentage = Number(lead.quiz_percentage);
+                  } else if (correctAnswers !== undefined && correctAnswers !== null && totalQuestions > 0) {
+                    displayPercentage = Math.round((Number(correctAnswers) / Number(totalQuestions)) * 100);
+                  } else if (hasQuiz) {
+                    displayPercentage = 0;
+                  }
+
                   return (
                     <tr
                       key={student.id}
-                      className="hover:bg-slate-50/80 transition-colors duration-150 group"
+                      className="hover:bg-slate-50/80 transition-colors duration-150"
                     >
-                      {/* 1. Candidate Name & Email */}
-                      <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-800 border border-slate-200/60 flex items-center justify-center font-bold text-xs shrink-0">
-                            {student.full_name?.charAt(0) || 'S'}
+                      {/* 1. Candidate Name (Email removed from table UI, kept in Excel CSV) */}
+                      <td className="px-3.5 py-2.5">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center font-bold text-xs shrink-0">
+                            {student.full_name?.charAt(0)?.toUpperCase() || 'C'}
                           </div>
-                          <div className="min-w-0">
-                            <p className="font-semibold text-slate-900 truncate">
-                              {student.full_name}
-                            </p>
-                            <p className="text-[11px] text-slate-400 truncate">
-                              {student.email}
-                            </p>
-                          </div>
+                          <p className="font-semibold text-slate-900 text-xs truncate" title={student.full_name || 'Anonymous Candidate'}>
+                            {student.full_name || 'Anonymous Candidate'}
+                          </p>
                         </div>
                       </td>
 
-                      {/* 2. Contact (Mobile) */}
-                      <td className="px-4 py-3.5">
-                        <p className="font-mono text-slate-700 font-medium text-[11px]">
-                          {student.mobile ? `+91 ${student.mobile}` : '—'}
-                        </p>
-                      </td>
-
-                      {/* 3. College / University */}
-                      <td className="px-4 py-3.5">
-                        <div className="flex items-center gap-1.5 max-w-[180px]">
-                          <Building className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                          <span className="text-slate-700 font-medium truncate" title={student.college}>
-                            {student.college || '—'}
+                      {/* 2. Contact & Clean WhatsApp Button */}
+                      <td className="px-3 py-2.5 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-slate-700 font-medium text-[11px] shrink-0">
+                            {student.mobile ? `+91 ${student.mobile}` : '—'}
                           </span>
+                          {student.mobile && (
+                            <button
+                              onClick={() => openWhatsApp(student)}
+                              className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition-colors shrink-0"
+                              title="Direct WhatsApp Chat"
+                            >
+                              WhatsApp
+                            </button>
+                          )}
                         </div>
                       </td>
 
-                      {/* 4. Branch / Course */}
-                      <td className="px-4 py-3.5">
+                      {/* 3. Domain (College removed from table UI, kept in Excel CSV) */}
+                      <td className="px-3 py-2.5">
                         <span
-                          className="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-medium text-[11px] border border-slate-200/60 max-w-[150px] truncate"
-                          title={student.branch}
+                          className="inline-block px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200/80 truncate max-w-full"
+                          title={domainInfo.name}
                         >
-                          {student.branch || '—'}
+                          {domainInfo.name}
                         </span>
                       </td>
 
-                      {/* 5. Academic Year */}
-                      <td className="px-4 py-3.5">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
-                          <GraduationCap className="w-3 h-3 text-indigo-500" />
-                          {student.academic_year || '—'}
-                        </span>
-                      </td>
-
-                      {/* 6. State */}
-                      <td className="px-4 py-3.5 text-slate-600">
-                        <div className="flex items-center gap-1 max-w-[120px] truncate">
-                          <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
-                          <span className="truncate">{student.state || '—'}</span>
-                        </div>
-                      </td>
-
-                      {/* 7. Registered Domain */}
-                      <td className="px-4 py-3.5">
-                        {(() => {
-                          const domainInfo = getStudentDomainDisplay(student);
-                          return (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-200/80 shadow-2xs">
-                              <span>{domainInfo.icon}</span>
-                              <span>{domainInfo.name}</span>
+                      {/* 4. Quiz Score (Pure percentage, handles 0%, never shows "Done") */}
+                      <td className="px-3 py-2.5 whitespace-nowrap">
+                        {displayPercentage !== null ? (
+                          <div className="flex items-center gap-1.5">
+                            <span
+                              className={`px-1.5 py-0.5 rounded text-[11px] font-bold border ${
+                                displayPercentage >= 80
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                  : displayPercentage >= 50
+                                  ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                  : 'bg-rose-50 text-rose-700 border-rose-200'
+                              }`}
+                            >
+                              {displayPercentage}%
                             </span>
-                          );
-                        })()}
+                            {correctAnswers !== undefined && correctAnswers !== null && (
+                              <span className="text-[11px] text-slate-500 font-mono font-medium">
+                                {correctAnswers}/{totalQuestions}
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-400 border border-slate-200 text-[10px] font-medium">
+                            Pending
+                          </span>
+                        )}
                       </td>
 
-                      {/* 8. Registered Date */}
-                      <td className="px-4 py-3.5">
-                        <div className="text-[11px]">
-                          <p className="font-semibold text-slate-700">
-                            {formatDate(student.created_at)}
-                          </p>
-                          <p className="text-slate-400 text-[10px]">
-                            {formatRelativeTime(student.created_at)}
-                          </p>
-                        </div>
+                      {/* 5. Milestone */}
+                      <td className="px-3 py-2.5 whitespace-nowrap">
+                        <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${stage.badgeColor}`}>
+                          {stage.label}
+                        </span>
                       </td>
 
-                      {/* 9. Actions */}
-                      <td className="px-4 py-3.5 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
+                      {/* 6. Actions */}
+                      <td className="px-3 py-2.5 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-1">
                           <button
                             onClick={() => setSelectedStudent(student)}
-                            className="p-1.5 rounded-xl border border-slate-200/60 hover:border-slate-300 hover:bg-slate-50 text-slate-600 transition-colors shadow-2xs"
-                            title="View Full Profile"
+                            className="p-1 rounded text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 transition-colors"
+                            title="View Details"
                           >
                             <Eye className="w-3.5 h-3.5" />
                           </button>
-
                           <button
                             onClick={() => setDeleteStudentConfirm(student)}
-                            className="p-1.5 rounded-xl border border-slate-200/60 hover:border-rose-200 hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors shadow-2xs"
-                            title="Delete Student Record"
+                            disabled={deletingId === student.id}
+                            className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors disabled:opacity-50"
+                            title="Delete Record"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -539,140 +577,204 @@ export default function AdminStudentsPage() {
             </tbody>
           </table>
         </div>
-
-        {/* Scroll Information Footer Bar */}
-        <div className="flex flex-col sm:flex-row items-center justify-between px-5 py-3 border-t border-slate-200 bg-slate-50/60 text-xs text-slate-600 gap-2">
-          <div className="flex items-center gap-2">
-            <span>
-              Showing <strong>{filteredStudents.length}</strong> of <strong>{students.length}</strong> candidates
-            </span>
-            {selectedDate && (
-              <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[11px] font-bold">
-                Date: {selectedDate}
-              </span>
-            )}
-          </div>
-          <div className="text-[11px] text-slate-400 font-medium">
-            ↕ Scroll inside table to view all candidate records
-          </div>
-        </div>
       </div>
 
-      {/* Full Registration Dossier Modal */}
+      {/* ── View Full Candidate Profile Modal ───────────────────────── */}
       {selectedStudent && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200/80 animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-start justify-between pb-4 border-b border-slate-100 mb-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 relative space-y-5">
+            {/* Modal Header */}
+            <div className="flex items-start justify-between border-b border-slate-100 pb-4">
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-2xl bg-slate-100 text-slate-800 border border-slate-200/80 flex items-center justify-center font-bold text-base">
-                  {selectedStudent.full_name?.charAt(0) || 'S'}
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-100 text-emerald-800 border border-emerald-200/80 flex items-center justify-center font-bold text-lg shadow-2xs">
+                  {selectedStudent.full_name?.charAt(0)?.toUpperCase() || 'C'}
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-900 text-base">{selectedStudent.full_name}</h3>
-                  <p className="text-xs text-slate-400">{selectedStudent.email}</p>
+                  <h3 className="text-base font-bold text-slate-900">
+                    {selectedStudent.full_name}
+                  </h3>
+                  <p className="text-xs text-slate-400 font-mono mt-0.5">
+                    ID: {selectedStudent.id} • Registered: {formatDate(selectedStudent.created_at)}
+                  </p>
                 </div>
               </div>
               <button
                 onClick={() => setSelectedStudent(null)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="space-y-4 text-xs">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                  <span className="text-slate-400 block mb-1 text-[11px] font-medium">Mobile Number</span>
-                  <div>
-                    <span className="font-semibold text-slate-800 font-mono text-xs block">
-                      {selectedStudent.mobile ? `+91 ${selectedStudent.mobile}` : '—'}
-                    </span>
-                  </div>
+            {/* Modal Section 1: Academic & Demographic Profile */}
+            <div>
+              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                <GraduationCap className="w-3.5 h-3.5 text-indigo-500" />
+                <span>Academic & Demographic Details</span>
+              </h4>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-slate-50/70 p-3.5 rounded-xl border border-slate-200/60 text-xs">
+                <div>
+                  <span className="text-slate-400 block text-[11px]">College / University</span>
+                  <strong className="text-slate-800 font-semibold">{selectedStudent.college || '—'}</strong>
                 </div>
-
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                  <span className="text-slate-400 block mb-1 text-[11px] font-medium">Registered Domain</span>
-                  <span className="font-semibold text-slate-800 truncate flex items-center gap-1.5">
-                    <span>{getStudentDomainDisplay(selectedStudent).icon}</span>
-                    <span>{getStudentDomainDisplay(selectedStudent).name}</span>
-                  </span>
+                <div>
+                  <span className="text-slate-400 block text-[11px]">Branch / Degree</span>
+                  <strong className="text-slate-800 font-semibold">{selectedStudent.branch || '—'}</strong>
                 </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                  <span className="text-slate-400 block mb-1 text-[11px] font-medium">College / University</span>
-                  <span className="font-semibold text-slate-800 block truncate" title={selectedStudent.college}>
-                    {selectedStudent.college || '—'}
-                  </span>
+                <div>
+                  <span className="text-slate-400 block text-[11px]">Academic Year</span>
+                  <strong className="text-slate-800 font-semibold">{selectedStudent.academic_year || '—'}</strong>
                 </div>
-
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                  <span className="text-slate-400 block mb-1 text-[11px] font-medium">Branch / Course</span>
-                  <span className="font-semibold text-slate-800 block truncate" title={selectedStudent.branch}>
-                    {selectedStudent.branch || '—'}
-                  </span>
+                <div>
+                  <span className="text-slate-400 block text-[11px]">State & City</span>
+                  <strong className="text-slate-800 font-semibold">
+                    {selectedStudent.city ? `${selectedStudent.city}, ` : ''}{selectedStudent.state || '—'}
+                  </strong>
                 </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                  <span className="text-slate-400 block mb-1 text-[11px] font-medium">Academic Year</span>
-                  <span className="font-semibold text-slate-800 block">
-                    {selectedStudent.academic_year || '—'}
-                  </span>
+                <div>
+                  <span className="text-slate-400 block text-[11px]">Graduation Year</span>
+                  <strong className="text-slate-800 font-semibold">{selectedStudent.graduation_year || '—'}</strong>
                 </div>
-
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                  <span className="text-slate-400 block mb-1 text-[11px] font-medium">State / Region</span>
-                  <span className="font-semibold text-slate-800 block">
-                    {selectedStudent.state || '—'}
-                  </span>
+                <div>
+                  <span className="text-slate-400 block text-[11px]">LinkedIn Profile</span>
+                  {selectedStudent.linkedin_url ? (
+                    <a
+                      href={selectedStudent.linkedin_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-emerald-600 hover:underline font-medium inline-flex items-center gap-1"
+                    >
+                      <span>View Profile</span>
+                      <ExternalLink className="w-2.5 h-2.5" />
+                    </a>
+                  ) : (
+                    <span className="text-slate-400">—</span>
+                  )}
                 </div>
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-slate-50/70 border border-slate-100 space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Registered On:</span>
-                  <span className="font-semibold text-slate-800">
-                    {formatDate(selectedStudent.created_at)}
-                  </span>
-                </div>
-                {selectedStudent.utm_source && (
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Acquisition Source:</span>
-                    <span className="font-semibold text-slate-800 capitalize">
-                      {selectedStudent.utm_source} {selectedStudent.utm_campaign ? `(${selectedStudent.utm_campaign})` : ''}
-                    </span>
-                  </div>
-                )}
-                {selectedStudent.referral_code && (
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Referral Code:</span>
-                    <span className="font-mono font-semibold text-slate-800">
-                      {selectedStudent.referral_code}
-                    </span>
-                  </div>
-                )}
               </div>
             </div>
 
-            <div className="mt-6 flex justify-between gap-2">
+            {/* Modal Section 2: Technical Assessment & Quiz Results */}
+            <div>
+              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                <Award className="w-3.5 h-3.5 text-emerald-500" />
+                <span>Technical Assessment & Quiz Metrics</span>
+              </h4>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50/70 p-3.5 rounded-xl border border-slate-200/60 text-xs">
+                <div>
+                  <span className="text-slate-400 block text-[11px]">Selected Domain</span>
+                  <strong className="text-slate-800 font-semibold flex items-center gap-1 mt-0.5">
+                    <span>{getStudentDomainDisplay(selectedStudent).icon}</span>
+                    <span>{getStudentDomainDisplay(selectedStudent).name}</span>
+                  </strong>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[11px]">Quiz Attempt</span>
+                  <strong className="text-slate-800 font-semibold">
+                    {selectedStudent.lead?.has_completed_quiz || selectedStudent.quiz_result
+                      ? 'Completed'
+                      : 'Not Attempted / Pending'}
+                  </strong>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[11px]">Score Obtained</span>
+                  <strong className="text-slate-800 font-semibold">
+                    {selectedStudent.quiz_result?.percentage !== undefined
+                      ? `${selectedStudent.quiz_result.percentage}% (${selectedStudent.quiz_result.correct_answers || 0}/${selectedStudent.quiz_result.total_questions || 10})`
+                      : selectedStudent.lead?.quiz_correct_answers !== undefined
+                      ? `${selectedStudent.lead.quiz_percentage || 0}% (${selectedStudent.lead.quiz_correct_answers}/${selectedStudent.lead.quiz_total_questions || 10})`
+                      : '—'}
+                  </strong>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[11px]">Skill Assessment Level</span>
+                  <strong className="text-slate-800 font-semibold">
+                    {selectedStudent.quiz_result?.skill_level || (selectedStudent.lead?.lead_score ?? 0 >= 80 ? 'Advanced' : 'Standard')}
+                  </strong>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Section 3: Conversion & Marketing Intelligence */}
+            <div>
+              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-purple-500" />
+                <span>Lead & Conversion Journey</span>
+              </h4>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-slate-50/70 p-3.5 rounded-xl border border-slate-200/60 text-xs">
+                <div>
+                  <span className="text-slate-400 block text-[11px]">Conversion Milestone</span>
+                  <strong className="text-slate-800 font-semibold">{getCandidateStage(selectedStudent).label}</strong>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[11px]">Lead Status & Score</span>
+                  <strong className="text-slate-800 font-semibold">
+                    {selectedStudent.lead?.lead_status || 'NURTURE'} ({Math.min(100, Math.max(0, Number(selectedStudent.lead?.lead_score) || 0))}/100)
+                  </strong>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[11px]">Webinar Enrolled</span>
+                  <strong className="text-slate-800 font-semibold">
+                    {selectedStudent.lead?.has_registered_bootcamp ? 'Yes (Enrolled)' : 'No'}
+                  </strong>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[11px]">WhatsApp Opt-in</span>
+                  <strong className="text-slate-800 font-semibold">
+                    {selectedStudent.whatsapp_opt_in ? 'Yes (Opted In)' : 'No'}
+                  </strong>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[11px]">Campaign / Referral</span>
+                  <strong className="text-slate-800 font-semibold">
+                    {selectedStudent.utm_campaign || selectedStudent.referral_code || selectedStudent.utm_source || 'Direct'}
+                  </strong>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[11px]">Last Activity</span>
+                  <strong className="text-slate-800 font-semibold">
+                    {selectedStudent.lead?.last_activity_at
+                      ? formatRelativeTime(selectedStudent.lead.last_activity_at)
+                      : '—'}
+                  </strong>
+                </div>
+              </div>
+              {selectedStudent.lead?.qualification_reason && (
+                <p className="mt-2 text-[11px] text-slate-500 bg-amber-50/60 p-2.5 rounded-lg border border-amber-100">
+                  <span className="font-bold text-amber-800">Qualification Note: </span>
+                  {selectedStudent.lead.qualification_reason}
+                </p>
+              )}
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+              <div className="flex items-center gap-2">
+                {selectedStudent.mobile && (
+                  <Button
+                    size="sm"
+                    onClick={() => openWhatsApp(selectedStudent)}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs flex items-center gap-1.5 shadow-xs"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    <span>WhatsApp Candidate</span>
+                  </Button>
+                )}
+                {selectedStudent.mobile && (
+                  <a
+                    href={`tel:${selectedStudent.mobile}`}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors"
+                  >
+                    <Phone className="w-3.5 h-3.5 text-slate-400" />
+                    <span>Call</span>
+                  </a>
+                )}
+              </div>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setDeleteStudentConfirm(selectedStudent)}
-                className="rounded-xl border-rose-200 text-rose-600 hover:bg-rose-50"
-              >
-                <Trash2 className="w-3.5 h-3.5 mr-1 text-rose-500" />
-                Delete Record
-              </Button>
-
-              <Button
-                size="sm"
                 onClick={() => setSelectedStudent(null)}
-                className="bg-slate-900 hover:bg-slate-800 text-white rounded-xl px-5"
+                className="text-xs"
               >
                 Close
               </Button>
@@ -681,66 +783,63 @@ export default function AdminStudentsPage() {
         </div>
       )}
 
-      {/* Delete Single Student Confirmation Modal */}
+      {/* ── Single Student Delete Confirmation Modal ─────────────────── */}
       {deleteStudentConfirm && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center shrink-0">
-                <Trash2 className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-900 text-sm">Delete Student Record</h3>
-                <p className="text-xs text-slate-500">Remove from registered directory</p>
-              </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xl max-w-md w-full p-6 space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center">
+              <AlertCircle className="w-6 h-6" />
             </div>
-            <p className="text-xs text-slate-600 mb-5 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-100">
-              Are you sure you want to delete <strong className="text-slate-900">{deleteStudentConfirm.full_name}</strong>? All registered information will be removed.
-            </p>
-            <div className="flex gap-2.5">
+            <div>
+              <h3 className="text-base font-bold text-slate-900">Delete Candidate Record?</h3>
+              <p className="text-xs text-slate-500 mt-1">
+                Are you sure you want to permanently delete{' '}
+                <strong className="text-slate-800">{deleteStudentConfirm.full_name}</strong>? All associated quiz attempts, lead scores, and reports will be removed.
+              </p>
+            </div>
+            <div className="flex items-center justify-end gap-2 pt-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setDeleteStudentConfirm(null)}
-                className="flex-1 rounded-xl text-xs h-9 font-medium"
+                disabled={Boolean(deletingId)}
+                className="text-xs"
               >
                 Cancel
               </Button>
               <Button
                 size="sm"
                 onClick={() => handleDeleteStudent(deleteStudentConfirm.id)}
-                disabled={deletingId === deleteStudentConfirm.id}
-                className="flex-1 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs h-9 font-semibold"
+                disabled={Boolean(deletingId)}
+                className="bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs"
               >
-                {deletingId === deleteStudentConfirm.id ? 'Deleting...' : 'Delete Student'}
+                {deletingId ? 'Deleting...' : 'Confirm Delete'}
               </Button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Delete All Students Confirmation Modal */}
+      {/* ── Delete All Confirmation Modal ────────────────────────────── */}
       {confirmDeleteAllModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center shrink-0">
-                <AlertCircle className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-900 text-sm">Delete All Students</h3>
-                <p className="text-xs text-rose-600 font-semibold">Irreversible action</p>
-              </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xl max-w-md w-full p-6 space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-700 border border-rose-200 flex items-center justify-center">
+              <Trash2 className="w-6 h-6" />
             </div>
-            <p className="text-xs text-slate-600 mb-5 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-100">
-              Are you sure you want to permanently delete all <strong className="text-slate-900">{students.length}</strong> registered students from the platform?
-            </p>
-            <div className="flex gap-2.5">
+            <div>
+              <h3 className="text-base font-bold text-slate-900">Clear Entire Candidate Directory?</h3>
+              <p className="text-xs text-slate-500 mt-1">
+                This will permanently delete all <strong className="text-slate-900">{students.length} candidates</strong> from both Students and Leads database. This action cannot be undone.
+              </p>
+            </div>
+            <div className="flex items-center justify-end gap-2 pt-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setConfirmDeleteAllModal(false)}
-                className="flex-1 rounded-xl text-xs h-9 font-medium"
+                disabled={deletingAll}
+                className="text-xs"
               >
                 Cancel
               </Button>
@@ -748,9 +847,9 @@ export default function AdminStudentsPage() {
                 size="sm"
                 onClick={handleDeleteAll}
                 disabled={deletingAll}
-                className="flex-1 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs h-9 font-semibold"
+                className="bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs"
               >
-                {deletingAll ? 'Deleting All...' : 'Yes, Delete All'}
+                {deletingAll ? 'Clearing All...' : 'Yes, Delete All'}
               </Button>
             </div>
           </div>

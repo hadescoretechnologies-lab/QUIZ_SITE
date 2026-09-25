@@ -119,7 +119,7 @@ serve(async (req) => {
       .eq("student_id", attempt.student_id)
       .single();
 
-    const newScore = (currentLead?.lead_score || 0) + leadScoreBump;
+    const newScore = Math.min(100, (currentLead?.lead_score || 0) + leadScoreBump);
     const newStatus = newScore >= 70 ? "HOT" : newScore >= 40 ? "WARM" : "NURTURE";
 
     await supabase

@@ -6,6 +6,10 @@
   "max_attempts": 1,
   "passing_percentage": 17,
   "gemini_api_key": "",
+  "webinar_url": "https://teams.live.com/meet/9393257871623?p=dXhSpnYk1vk9KzD6r5",
+  "whatsapp_community_url": "https://chat.whatsapp.com/E3OZRJip3Gx1y0XXNmKXvo",
   "quiz_timer_minutes": 15,
-  "gemini_api_key_masked": ""
+  "gemini_api_key_masked": "",
+  "webinar_date": "",
+  "webinar_time": "12:00 PM"
 }

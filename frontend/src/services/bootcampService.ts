@@ -145,7 +145,7 @@ async function updateLeadForBootcamp(studentId: string): Promise<void> {
 
   if (!lead) return;
 
-  const newScore = (lead.lead_score || 0) + 30;
+  const newScore = Math.min(100, (lead.lead_score || 0) + 30);
   const newStatus = newScore >= 70 ? 'HOT' : newScore >= 40 ? 'WARM' : 'NURTURE';
 
   await supabase

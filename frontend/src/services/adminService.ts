@@ -10,8 +10,8 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     supabase.from('students').select('id', { count: 'exact', head: true }),
     supabase.from('students').select('id', { count: 'exact', head: true }).gte('created_at', `${today}T00:00:00`),
     supabase.from('leads').select('id', { count: 'exact', head: true }).gte('created_at', `${today}T00:00:00`),
-    supabase.from('quiz_attempts').select('id', { count: 'exact', head: true }),
-    supabase.from('quiz_attempts').select('id', { count: 'exact', head: true }).eq('status', 'submitted'),
+    supabase.from('quiz_attempts').select('student_id'),
+    supabase.from('quiz_attempts').select('student_id').eq('status', 'submitted'),
     supabase.from('bootcamp_registrations').select('id', { count: 'exact', head: true }),
     supabase.from('leads').select('id, lead_status, lead_score, has_registered_bootcamp'),
   ]);
@@ -24,16 +24,25 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   const warm = leadData.filter((l) => l.lead_status === 'WARM' || (l.lead_score && l.lead_score >= 35 && l.lead_score < 60)).length;
   const nurture = leadData.filter((l) => l.lead_status === 'NURTURE' || (l.lead_score && l.lead_score < 35)).length;
 
-  const completedCount = completed.count || 0;
-  const bootcampCount = Math.max(
-    bootcampRegs.count || 0,
-    leadData.filter((l) => l.has_registered_bootcamp).length
+  // Deduplicate candidate attempts so 1 candidate with multiple attempts counts as 1 candidate
+  const uniqueAttemptedStudents = new Set((attempts.data || []).map((a: any) => a.student_id).filter(Boolean)).size;
+  const uniqueCompletedStudents = new Set((completed.data || []).map((a: any) => a.student_id).filter(Boolean)).size;
+
+  const completedCount = Math.min(total, uniqueCompletedStudents);
+  const attemptedCount = Math.min(total, Math.max(completedCount, uniqueAttemptedStudents || completedCount));
+
+  const bootcampCount = Math.min(
+    total,
+    Math.max(
+      bootcampRegs.count || 0,
+      leadData.filter((l) => l.has_registered_bootcamp).length
+    )
   );
 
   return {
     total_students: total,
     new_leads_today: newToday,
-    quiz_attempts: attempts.count || 0,
+    quiz_attempts: attemptedCount,
     completed_quizzes: completedCount,
     bootcamp_registrations: bootcampCount,
     hot_leads: hot,
