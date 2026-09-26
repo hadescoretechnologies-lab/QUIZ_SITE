@@ -171,14 +171,16 @@ export default function AdminLoginPage() {
             </form>
 
             {/* Clean Portal Link with Hover Shift */}
-            <div className="mt-6 pt-5 border-t border-slate-800/80 text-center">
-              <Link
-                to="/home"
-                className="text-xs text-slate-400 hover:text-indigo-400 font-medium transition-all duration-200 inline-flex items-center gap-1.5 group cursor-pointer"
-              >
-                <span className="group-hover:-translate-x-0.5 transition-transform duration-200">←</span>
-                <span>Go to Student Assessment Portal</span>
-              </Link>
+            <div className="mt-6 pt-5 border-t border-slate-800/80 text-center space-y-3">
+              <div>
+                <Link
+                  to="/"
+                  className="text-xs text-slate-400 hover:text-indigo-400 font-medium transition-all duration-200 inline-flex items-center gap-1.5 group cursor-pointer"
+                >
+                  <span className="group-hover:-translate-x-0.5 transition-transform duration-200">←</span>
+                  <span>Go to Student Assessment Portal</span>
+                </Link>
+              </div>
             </div>
 
           </div>

@@ -22,6 +22,7 @@ import supabase from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/useToast';
 import { getDomainIconPath } from '@/lib/domainIcons';
+import { FloatingInstagramButton } from '@/components/layout/FloatingInstagramButton';
 import type { QuizResult, SkillLevel, Bootcamp } from '@/types';
 
 function WhatsAppIcon({ className = "w-5 h-5" }: { className?: string }) {
@@ -413,7 +414,7 @@ export default function ResultPage() {
       <div className="absolute top-1/3 right-0 w-72 h-72 bg-purple-100/30 rounded-full blur-3xl translate-x-1/2 pointer-events-none" />
       <div className="absolute bottom-6 left-10 w-64 h-64 bg-emerald-100/30 rounded-full blur-3xl pointer-events-none" />
 
-      <main className="max-w-4xl lg:max-w-5xl w-full h-full flex flex-col justify-between gap-2 sm:gap-2.5 relative z-10 min-h-0">
+      <main className="max-w-4xl lg:max-w-5xl w-full h-full flex flex-col justify-between gap-2 sm:gap-2.5 relative z-10 min-h-0 pb-14 sm:pb-0">
 
         {/* 1. TOP CONFIRMATION BANNER */}
         <div className="bg-[#F2FBF7] border border-[#A7F3D0] rounded-2xl px-4 py-2 sm:py-2.5 shadow-2xs flex items-center justify-center gap-3 sm:gap-4 shrink-0">
@@ -744,21 +745,8 @@ export default function ResultPage() {
 
       </main>
 
-      {/* Floating Interactive WhatsApp Symbol on bottom right */}
-      <a
-        href={WHATSAPP_COMMUNITY_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={handleJoinWhatsApp}
-        className="fixed bottom-3 right-3 z-50 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#25D366] hover:bg-[#20ba59] active:bg-[#1da850] text-white shadow-lg shadow-emerald-500/35 flex items-center justify-center transition-all transform hover:scale-110 active:scale-95 cursor-pointer no-underline group"
-        id="whatsapp-side-icon-btn"
-        data-testid="whatsapp-side-icon-btn"
-        aria-label="WhatsApp Community"
-        title="WhatsApp Community"
-      >
-        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#25D366] opacity-30 group-hover:opacity-50 pointer-events-none"></span>
-        <WhatsAppIcon className="w-5 h-5 fill-current relative z-10" />
-      </a>
+      {/* Floating Instagram Symbol on bottom right */}
+      <FloatingInstagramButton />
     </div>
   );
 }

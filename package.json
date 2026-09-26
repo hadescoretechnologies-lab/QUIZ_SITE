@@ -4,10 +4,12 @@
   "private": true,
   "description": "SkillProbe - Student Skill Assessment, Skill Report, Free Bootcamp & Lead Generation Platform",
   "scripts": {
+    "dev": "npm run dev:frontend",
     "dev:frontend": "cd frontend && npm run dev",
     "dev:backend": "cd backend && node server.js",
     "install:frontend": "cd frontend && npm install",
     "install:backend": "cd backend && npm install",
+    "build": "npm run build:frontend",
     "build:frontend": "cd frontend && npm run build"
   },
   "keywords": [
